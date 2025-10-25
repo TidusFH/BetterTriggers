@@ -405,8 +405,7 @@ namespace BetterTriggers.WorldEdit
             if (triggerTypes != null)
             {
                 DebugLog($"[LoadTriggerDataFromIni] Loading {triggerTypes.Count} trigger types...");
-            }
-            foreach (var type in triggerTypes)
+                foreach (var type in triggerTypes)
             {
                 string[] values = type.Value.Split(",");
                 string key = type.KeyName;
@@ -433,6 +432,7 @@ namespace BetterTriggers.WorldEdit
 
 
                 Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
+                }
             }
 
 
@@ -443,8 +443,7 @@ namespace BetterTriggers.WorldEdit
             if (triggerParams != null)
             {
                 DebugLog($"[LoadTriggerDataFromIni] Loading {triggerParams.Count} trigger params...");
-            }
-            foreach (var preset in triggerParams)
+                foreach (var preset in triggerParams)
             {
                 string[] values = preset.Value.Split(",");
                 string key = preset.KeyName;
@@ -478,6 +477,7 @@ namespace BetterTriggers.WorldEdit
                 if (isBT)
                 {
                     btOnlyData.Add(key);
+                }
                 }
             }
 
