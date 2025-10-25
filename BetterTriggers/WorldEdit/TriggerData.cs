@@ -751,8 +751,16 @@ namespace BetterTriggers.WorldEdit
                                 if (File.Exists(iconPath))
                                 {
                                     byte[] img = File.ReadAllBytes(iconPath);
-                                    Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
-                                    categoryCount++;
+                                    try
+                                    {
+                                        Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                        categoryCount++;
+                                    }
+                                    catch (ArgumentException)
+                                    {
+                                        // Category already exists (e.g., TC_ARITHMETIC from base game), skip it
+                                        DebugLog($"[YDWE] Skipping duplicate category: {category.KeyName}");
+                                    }
                                 }
                                 else
                                 {
@@ -761,8 +769,16 @@ namespace BetterTriggers.WorldEdit
                                     if (File.Exists(defaultIconPath))
                                     {
                                         byte[] img = File.ReadAllBytes(defaultIconPath);
-                                        Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
-                                        categoryCount++;
+                                        try
+                                        {
+                                            Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                            categoryCount++;
+                                        }
+                                        catch (ArgumentException)
+                                        {
+                                            // Category already exists, skip it
+                                            DebugLog($"[YDWE] Skipping duplicate category: {category.KeyName}");
+                                        }
                                     }
                                 }
                             }
