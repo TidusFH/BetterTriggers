@@ -116,14 +116,52 @@ namespace BetterTriggers.WorldEdit
                 ScriptGenerator.JassHelper = $"{System.IO.Directory.GetCurrentDirectory()}\\Resources\\JassHelper\\jasshelper.exe";
 
                 DebugLog("Exporting common.j and Blizzard.j from CASC...");
-                WarcraftStorageReader.Export(@"scripts\common.j", pathCommonJ);
-                WarcraftStorageReader.Export(@"scripts\Blizzard.j", pathBlizzardJ);
+                try
+                {
+                    WarcraftStorageReader.Export(@"scripts\common.j", pathCommonJ);
+                    WarcraftStorageReader.Export(@"scripts\Blizzard.j", pathBlizzardJ);
+                    DebugLog("CASC export completed successfully");
+                }
+                catch (Exception ex)
+                {
+                    DebugLog($"ERROR exporting from CASC: {ex.Message}");
+                    throw;
+                }
 
-                DebugLog("Opening triggerdata.txt from CASC...");
-                var file = WarcraftStorageReader.OpenFile(@"ui\triggerdata.txt");
+                DebugLog("Opening triggerdata.txt from CASC (with 30 second timeout)...");
+                Stream file = null;
+                try
+                {
+                    var fileTask = System.Threading.Tasks.Task.Run(() => WarcraftStorageReader.OpenFile(@"ui\triggerdata.txt"));
+                    if (fileTask.Wait(TimeSpan.FromSeconds(30)))
+                    {
+                        file = fileTask.Result;
+                        DebugLog("triggerdata.txt opened successfully from CASC");
+                    }
+                    else
+                    {
+                        DebugLog("TIMEOUT: triggerdata.txt failed to open within 30 seconds");
+                        DebugLog("This usually indicates CASC is trying to download from CDN and failing");
+                        DebugLog("Check your internet connection or Warcraft 3 installation");
+                        throw new TimeoutException("CASC OpenFile operation timed out after 30 seconds");
+                    }
+                }
+                catch (TimeoutException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    DebugLog($"ERROR opening triggerdata.txt from CASC: {ex.Message}");
+                    DebugLog($"Exception type: {ex.GetType().Name}");
+                    DebugLog($"Stack trace: {ex.StackTrace}");
+                    throw;
+                }
+
                 var reader = new StreamReader(file);
                 DebugLog("Reading triggerdata.txt content...");
                 var text = reader.ReadToEnd();
+                DebugLog($"triggerdata.txt content read: {text.Length} characters");
 
                 DebugLog("Converting triggerdata.txt to IniData...");
                 data = IniFileConverter.GetIniData(text);
