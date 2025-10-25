@@ -20,6 +20,17 @@ namespace BetterTriggers.WorldEdit
         // Set this to false to completely disable YDWE loading (for testing)
         private const bool ENABLE_YDWE = true;
 
+        private static void Log(string message)
+        {
+            try
+            {
+                string logPath = Path.Combine(Directory.GetCurrentDirectory(), "ydwe_debug.log");
+                File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss}] {message}\n");
+                Console.WriteLine(message); // Also try console
+            }
+            catch { }
+        }
+
         public static void LoadYdweData(bool isTest)
         {
             if (isTest)
@@ -27,7 +38,7 @@ namespace BetterTriggers.WorldEdit
 
             if (!ENABLE_YDWE)
             {
-                Console.WriteLine("YDWE loading is disabled");
+                Log("YDWE loading is disabled");
                 return;
             }
 
@@ -35,11 +46,11 @@ namespace BetterTriggers.WorldEdit
 
             if (!Directory.Exists(ydwePath))
             {
-                Console.WriteLine($"YDWE directory not found at: {ydwePath}");
+                Log($"YDWE directory not found at: {ydwePath}");
                 return; // YDWE files not present
             }
 
-            Console.WriteLine($"Loading YDWE data from: {ydwePath}");
+            Log($"Loading YDWE data from: {ydwePath}");
 
             try
             {
@@ -58,23 +69,23 @@ namespace BetterTriggers.WorldEdit
                 // Load calls (functions that return values) from call.txt (TOML format)
                 LoadYdweTomlFunctions(Path.Combine(ydwePath, "call.txt"), TriggerData.CallTemplates, TriggerElementType.None);
 
-                Console.WriteLine("YDWE data loaded successfully");
+                Log("YDWE data loaded successfully");
 
                 // Verify CameraSetupApplyForceDuration was loaded
                 if (TriggerData.ActionTemplates.ContainsKey("CameraSetupApplyForceDuration"))
                 {
-                    Console.WriteLine("✓ CameraSetupApplyForceDuration found in ActionTemplates");
+                    Log("✓ CameraSetupApplyForceDuration found in ActionTemplates");
                 }
                 else
                 {
-                    Console.WriteLine("✗ CameraSetupApplyForceDuration NOT found in ActionTemplates");
+                    Log("✗ CameraSetupApplyForceDuration NOT found in ActionTemplates");
                 }
             }
             catch (Exception ex)
             {
                 // Log error but don't crash - just skip YDWE if there's a problem
-                Console.WriteLine($"Error loading YDWE data: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Log($"Error loading YDWE data: {ex.Message}");
+                Log($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -110,13 +121,13 @@ namespace BetterTriggers.WorldEdit
                             {
                                 byte[] emptyIcon = new byte[0]; // Use empty icon to avoid file system issues
                                 Category.Create(category.KeyName, emptyIcon, displayName, shouldDisplay);
-                                Console.WriteLine($"Created YDWE category: {category.KeyName} - {displayName}");
+                                Log($"Created YDWE category: {category.KeyName} - {displayName}");
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Warning: Failed to load YDWE category {category.KeyName}: {ex.Message}");
+                        Log($"Warning: Failed to load YDWE category {category.KeyName}: {ex.Message}");
                     }
                 }
             }
@@ -142,11 +153,11 @@ namespace BetterTriggers.WorldEdit
                         string baseType = values.Length >= 5 ? values[4] : null;
 
                         Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
-                        Console.WriteLine($"Created YDWE type: {key} - {displayName}");
+                        Log($"Created YDWE type: {key} - {displayName}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Warning: Failed to load YDWE type {type.KeyName}: {ex.Message}");
+                        Log($"Warning: Failed to load YDWE type {type.KeyName}: {ex.Message}");
                     }
                 }
             }
@@ -156,11 +167,11 @@ namespace BetterTriggers.WorldEdit
         {
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"YDWE file not found: {filePath}");
+                Log($"YDWE file not found: {filePath}");
                 return;
             }
 
-            Console.WriteLine($"Loading YDWE {elementType} from: {Path.GetFileName(filePath)}");
+            Log($"Loading YDWE {elementType} from: {Path.GetFileName(filePath)}");
 
             string tomlText = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
             TomlTable table;
@@ -171,8 +182,8 @@ namespace BetterTriggers.WorldEdit
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing TOML file {filePath}: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Log($"Error parsing TOML file {filePath}: {ex.Message}");
+                Log($"Stack trace: {ex.StackTrace}");
                 return;
             }
 
@@ -261,20 +272,20 @@ namespace BetterTriggers.WorldEdit
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error loading YDWE function {functionName}: {ex.Message}");
+                    Log($"Error loading YDWE function {functionName}: {ex.Message}");
                 }
             }
 
-            Console.WriteLine($"Loaded {loadedCount} YDWE {elementType} functions");
+            Log($"Loaded {loadedCount} YDWE {elementType} functions");
 
             // Log first few function names for verification
             if (loadedCount > 0 && loadedCount <= 5)
             {
-                Console.WriteLine($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(loadedCount))}");
+                Log($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(loadedCount))}");
             }
             else if (loadedCount > 5)
             {
-                Console.WriteLine($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(5))}");
+                Log($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(5))}");
             }
         }
 
