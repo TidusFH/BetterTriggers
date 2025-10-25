@@ -33,6 +33,7 @@ namespace BetterTriggers.WorldEdit
             public string Comment { get; set; }
             public string Category { get; set; }
             public string ScriptName { get; set; }
+            public string Returns { get; set; }  // For TriggerCalls
             public List<YDWEArgument> Arguments { get; set; } = new List<YDWEArgument>();
         }
 
@@ -168,6 +169,9 @@ namespace BetterTriggers.WorldEdit
                             case "script_name":
                                 currentFunction.ScriptName = value;
                                 break;
+                            case "returns":
+                                currentFunction.Returns = value;
+                                break;
                         }
                     }
                 }
@@ -185,6 +189,7 @@ namespace BetterTriggers.WorldEdit
         /// <summary>
         /// Converts parsed YDWE functions to IniData format.
         /// Format: FunctionName=0,type1,type2,type3
+        /// For TriggerCalls: FunctionName=0,1,returnType,type1,type2,type3
         /// </summary>
         private static IniData ConvertToIniData(List<YDWEFunction> functions, string sectionName)
         {
@@ -194,8 +199,16 @@ namespace BetterTriggers.WorldEdit
             foreach (var func in functions)
             {
                 // Build the function definition line
-                // Format: FunctionName=0,type1,type2,type3
                 var paramTypes = new List<string> { "0" }; // First parameter is always 0
+
+                // For TriggerCalls, add flag and return type
+                if (sectionName == "TriggerCalls" && !string.IsNullOrEmpty(func.Returns))
+                {
+                    paramTypes.Add("1"); // Flag for 1.28+ format
+                    paramTypes.Add(func.Returns); // Return type
+                }
+
+                // Add parameter types
                 foreach (var arg in func.Arguments)
                 {
                     if (!string.IsNullOrEmpty(arg.Type))
