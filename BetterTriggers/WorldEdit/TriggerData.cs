@@ -557,17 +557,17 @@ namespace BetterTriggers.WorldEdit
                     if (key.EndsWith("DisplayName"))
                     {
                         functionTemplate.name = _func.Value.Replace("\"", "");
-                        ParamDisplayNames.Add(name, functionTemplate.name);
+                        ParamDisplayNames.TryAdd(name, functionTemplate.name);
                     }
                     else if (key.EndsWith("Parameters"))
                     {
                         functionTemplate.paramText = _func.Value.Replace("\"", "");
-                        ParamCodeText.Add(name, functionTemplate.paramText);
+                        ParamCodeText.TryAdd(name, functionTemplate.paramText);
                     }
                     else if (key.EndsWith("Category"))
                     {
                         functionTemplate.category = _func.Value;
-                        FunctionCategories.Add(name, functionTemplate.category);
+                        FunctionCategories.TryAdd(name, functionTemplate.category);
                     }
                     else if (key.EndsWith("Defaults"))
                     {
@@ -585,7 +585,14 @@ namespace BetterTriggers.WorldEdit
                     if (!dictionary.TryGetValue(name, out controlValue))
                     {
                         dictionary.Add(name, functionTemplate);
-                        FunctionsAll.Add(name, functionTemplate);
+                        if (!FunctionsAll.ContainsKey(name))
+                        {
+                            FunctionsAll.Add(name, functionTemplate);
+                        }
+                        else
+                        {
+                            DebugLog($"[LoadFunctions] Skipping duplicate function in FunctionsAll: {name}");
+                        }
                     }
                 }
                 else
