@@ -243,6 +243,11 @@ namespace BetterTriggers.WorldEdit
             }
 
 
+            // --- LOAD YDWE DATA --- //
+
+            YdweLoader.LoadYdweData(isTest);
+
+
             // --- Adds extends to types --- //
 
             Types.Create("agent", false, false, "Agent", string.Empty); // hack
