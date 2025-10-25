@@ -12,6 +12,19 @@ namespace BetterTriggers.WorldEdit
     /// </summary>
     public static class YDWEParser
     {
+        // Debug logging to file
+        private static string debugLogPath = Path.Combine(Directory.GetCurrentDirectory(), "ydwe_debug.log");
+        private static void DebugLog(string message)
+        {
+            string logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+            Console.WriteLine(logMessage);
+            try
+            {
+                File.AppendAllText(debugLogPath, logMessage + Environment.NewLine);
+            }
+            catch { /* Ignore file write errors */ }
+        }
+
         public class YDWEFunction
         {
             public string Name { get; set; }
@@ -39,12 +52,12 @@ namespace BetterTriggers.WorldEdit
         /// <returns>IniData object containing parsed functions</returns>
         public static IniData ParseYDWEFile(string filePath, string sectionName)
         {
-            Console.WriteLine($"[YDWE Parser] Parsing {Path.GetFileName(filePath)}...");
+            DebugLog($"[YDWE Parser] Parsing {Path.GetFileName(filePath)}...");
             var functions = ParseYDWEFunctions(filePath);
-            Console.WriteLine($"[YDWE Parser] Parsed {functions.Count} functions from {Path.GetFileName(filePath)}");
-            Console.WriteLine($"[YDWE Parser] Converting to IniData format...");
+            DebugLog($"[YDWE Parser] Parsed {functions.Count} functions from {Path.GetFileName(filePath)}");
+            DebugLog($"[YDWE Parser] Converting to IniData format...");
             var result = ConvertToIniData(functions, sectionName);
-            Console.WriteLine($"[YDWE Parser] Conversion complete for {Path.GetFileName(filePath)}");
+            DebugLog($"[YDWE Parser] Conversion complete for {Path.GetFileName(filePath)}");
             return result;
         }
 

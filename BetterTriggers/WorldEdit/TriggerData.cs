@@ -29,7 +29,7 @@ namespace BetterTriggers.WorldEdit
         internal static Dictionary<string, FunctionTemplate> ActionTemplates = new Dictionary<string, FunctionTemplate>();
         internal static Dictionary<string, FunctionTemplate> CallTemplates = new Dictionary<string, FunctionTemplate>();
         internal static Dictionary<string, FunctionTemplate> FunctionsAll = new Dictionary<string, FunctionTemplate>();
-        internal static HashSet<string> BoolExprTempaltes = new HashSet<string>(); 
+        internal static HashSet<string> BoolExprTempaltes = new HashSet<string>();
 
         internal static Dictionary<string, string> ParamDisplayNames = new Dictionary<string, string>();
         internal static Dictionary<string, string> ParamCodeText = new Dictionary<string, string>();
@@ -47,8 +47,27 @@ namespace BetterTriggers.WorldEdit
         private static HashSet<string> btOnlyData = new HashSet<string>();
         private static bool isBT = false;
 
+        // Debug logging to file
+        private static string debugLogPath = Path.Combine(Directory.GetCurrentDirectory(), "ydwe_debug.log");
+        private static void DebugLog(string message)
+        {
+            string logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+            Console.WriteLine(logMessage);
+            try
+            {
+                File.AppendAllText(debugLogPath, logMessage + Environment.NewLine);
+            }
+            catch { /* Ignore file write errors */ }
+        }
+
         public static void Load(bool isTest)
         {
+            // Clear previous debug log
+            try { if (File.Exists(debugLogPath)) File.Delete(debugLogPath); } catch { }
+
+            DebugLog("=== TriggerData.Load() STARTED ===");
+            DebugLog($"IsTest: {isTest}");
+
             IniData data = null;
 
             Types.Clear();
@@ -65,8 +84,11 @@ namespace BetterTriggers.WorldEdit
             customPresets.Clear();
             Category.Clear();
 
+            DebugLog("Clearing dictionaries and collections...");
+
             if (isTest)
             {
+                DebugLog("Test mode: loading test resources");
                 string path = Path.Combine(Directory.GetCurrentDirectory(), "TestResources\\triggerdata.txt");
                 string triggerdata = File.ReadAllText(path);
                 data = IniFileConverter.GetIniData(triggerdata);
@@ -80,6 +102,7 @@ namespace BetterTriggers.WorldEdit
             }
             else
             {
+                DebugLog("Production mode: loading from CASC");
                 string baseDir = Directory.GetCurrentDirectory() + "\\Resources\\JassHelper\\";
                 if (!Directory.Exists(baseDir))
                 {
@@ -92,14 +115,19 @@ namespace BetterTriggers.WorldEdit
                 ScriptGenerator.PathBlizzardJ = pathBlizzardJ;
                 ScriptGenerator.JassHelper = $"{System.IO.Directory.GetCurrentDirectory()}\\Resources\\JassHelper\\jasshelper.exe";
 
+                DebugLog("Exporting common.j and Blizzard.j from CASC...");
                 WarcraftStorageReader.Export(@"scripts\common.j", pathCommonJ);
                 WarcraftStorageReader.Export(@"scripts\Blizzard.j", pathBlizzardJ);
 
+                DebugLog("Opening triggerdata.txt from CASC...");
                 var file = WarcraftStorageReader.OpenFile(@"ui\triggerdata.txt");
                 var reader = new StreamReader(file);
+                DebugLog("Reading triggerdata.txt content...");
                 var text = reader.ReadToEnd();
 
+                DebugLog("Converting triggerdata.txt to IniData...");
                 data = IniFileConverter.GetIniData(text);
+                DebugLog("TriggerData.txt loaded successfully");
 
                 // --- TRIGGER CATEGORIES --- //
 
@@ -184,12 +212,18 @@ namespace BetterTriggers.WorldEdit
 
 
 
+            DebugLog("Loading base trigger data from IniData...");
             LoadTriggerDataFromIni(data, isTest);
+            DebugLog("Base trigger data loaded.");
+
+            DebugLog("Loading translations...");
             LoadTranslations(isTest);
+            DebugLog("Translations loaded.");
 
 
             // --- LOAD CUSTOM DATA --- //
 
+            DebugLog("=== Loading custom BetterTriggers data ===");
             isBT = true;
 
             // --- Loads in all editor versions --- //
@@ -197,9 +231,11 @@ namespace BetterTriggers.WorldEdit
             customBJFunctions_Jass = string.Empty;
             customBJFunctions_Lua = string.Empty;
 
+            DebugLog("Loading triggerdata_custom.txt...");
             var textCustom = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/Custom/triggerdata_custom.txt"));
             var dataCustom = IniFileConverter.GetIniData(textCustom);
             LoadTriggerDataFromIni(dataCustom, isTest);
+            DebugLog("triggerdata_custom.txt loaded");
 
             textCustom = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/Custom/Globals_custom.txt"));
             dataCustom = IniFileConverter.GetIniData(textCustom);
@@ -323,14 +359,14 @@ namespace BetterTriggers.WorldEdit
 
         private static void LoadTriggerDataFromIni(IniData data, bool isTest)
         {
-            Console.WriteLine($"[LoadTriggerDataFromIni] Starting to load trigger data from IniData...");
+            DebugLog("[LoadTriggerDataFromIni] Starting to load trigger data from IniData...");
 
             // --- TRIGGER TYPES (GUI VARIABLE TYPE DEFINITIONS) --- //
 
             var triggerTypes = data.Sections["TriggerTypes"];
             if (triggerTypes != null)
             {
-                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerTypes.Count} trigger types...");
+                DebugLog("[LoadTriggerDataFromIni] Loading {triggerTypes.Count} trigger types...");
             }
             foreach (var type in triggerTypes)
             {
@@ -368,7 +404,7 @@ namespace BetterTriggers.WorldEdit
             var triggerParams = data.Sections["TriggerParams"];
             if (triggerParams != null)
             {
-                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerParams.Count} trigger params...");
+                DebugLog("[LoadTriggerDataFromIni] Loading {triggerParams.Count} trigger params...");
             }
             foreach (var preset in triggerParams)
             {
@@ -410,12 +446,12 @@ namespace BetterTriggers.WorldEdit
 
             // --- TRIGGER FUNCTIONS --- //
 
-            Console.WriteLine($"[LoadTriggerDataFromIni] Loading trigger functions...");
+            DebugLog("[LoadTriggerDataFromIni] Loading trigger functions...");
             LoadFunctions(data, "TriggerEvents", EventTemplates, TriggerElementType.Event);
             LoadFunctions(data, "TriggerConditions", ConditionTemplates, TriggerElementType.Condition);
             LoadFunctions(data, "TriggerActions", ActionTemplates, TriggerElementType.Action);
             LoadFunctions(data, "TriggerCalls", CallTemplates, TriggerElementType.None);
-            Console.WriteLine($"[LoadTriggerDataFromIni] Completed loading trigger functions.");
+            DebugLog("[LoadTriggerDataFromIni] Completed loading trigger functions.");
 
 
 
@@ -464,7 +500,7 @@ namespace BetterTriggers.WorldEdit
             if (section == null)
                 return;
 
-            Console.WriteLine($"[LoadFunctions] Processing {sectionName} with {section.Count} keys...");
+            DebugLog("[LoadFunctions] Processing {sectionName} with {section.Count} keys...");
             string name = string.Empty;
             FunctionTemplate functionTemplate = null;
             int processed = 0;
@@ -473,7 +509,7 @@ namespace BetterTriggers.WorldEdit
                 processed++;
                 if (processed % 100 == 0)
                 {
-                    Console.WriteLine($"[LoadFunctions] Processed {processed}/{section.Count} keys in {sectionName}...");
+                    DebugLog("[LoadFunctions] Processed {processed}/{section.Count} keys in {sectionName}...");
                 }
                 string key = _func.KeyName;
 
@@ -572,7 +608,7 @@ namespace BetterTriggers.WorldEdit
                     }
                 }
             }
-            Console.WriteLine($"[LoadFunctions] Completed processing {sectionName}. Processed {processed} keys total.");
+            DebugLog("[LoadFunctions] Completed processing {sectionName}. Processed {processed} keys total.");
         }
 
         /// <summary>
@@ -607,16 +643,16 @@ namespace BetterTriggers.WorldEdit
         {
             string ydweDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/YDWE");
 
-            Console.WriteLine($"[YDWE] Attempting to load YDWE data from: {ydweDir}");
+            DebugLog("[YDWE] Attempting to load YDWE data from: {ydweDir}");
 
             if (!Directory.Exists(ydweDir))
             {
                 // YDWE directory doesn't exist, skip loading
-                Console.WriteLine($"[YDWE] YDWE directory not found, skipping YDWE loading");
+                DebugLog("[YDWE] YDWE directory not found, skipping YDWE loading");
                 return;
             }
 
-            Console.WriteLine($"[YDWE] YDWE directory found, loading YDWE trigger data...");
+            DebugLog("[YDWE] YDWE directory found, loading YDWE trigger data...");
 
             try
             {
@@ -624,7 +660,7 @@ namespace BetterTriggers.WorldEdit
                 string definePath = Path.Combine(ydweDir, "define.txt");
                 if (File.Exists(definePath))
                 {
-                    Console.WriteLine($"[YDWE] Loading define.txt...");
+                    DebugLog("[YDWE] Loading define.txt...");
                     // define.txt uses standard INI format, so use IniFileConverter
                     string defineText = File.ReadAllText(definePath);
                     var defineData = Utility.IniFileConverter.GetIniData(defineText);
@@ -654,7 +690,7 @@ namespace BetterTriggers.WorldEdit
                                 }
                             }
                         }
-                        Console.WriteLine($"[YDWE] Loaded {typeCount} YDWE types");
+                        DebugLog("[YDWE] Loaded {typeCount} YDWE types");
                     }
 
                     // Load categories
@@ -693,7 +729,7 @@ namespace BetterTriggers.WorldEdit
                                 }
                             }
                         }
-                        Console.WriteLine($"[YDWE] Loaded {categoryCount} YDWE categories");
+                        DebugLog("[YDWE] Loaded {categoryCount} YDWE categories");
                     }
                 }
 
@@ -701,49 +737,49 @@ namespace BetterTriggers.WorldEdit
                 string eventPath = Path.Combine(ydweDir, "event.txt");
                 if (File.Exists(eventPath))
                 {
-                    Console.WriteLine($"[YDWE] Loading event.txt...");
+                    DebugLog("[YDWE] Loading event.txt...");
                     var eventData = YDWEParser.ParseYDWEFile(eventPath, "TriggerEvents");
-                    Console.WriteLine($"[YDWE] Passing event.txt to LoadTriggerDataFromIni...");
+                    DebugLog("[YDWE] Passing event.txt to LoadTriggerDataFromIni...");
                     LoadTriggerDataFromIni(eventData, false);
-                    Console.WriteLine($"[YDWE] Event.txt loaded successfully");
+                    DebugLog("[YDWE] Event.txt loaded successfully");
                 }
 
                 // Load condition.txt
                 string conditionPath = Path.Combine(ydweDir, "condition.txt");
                 if (File.Exists(conditionPath))
                 {
-                    Console.WriteLine($"[YDWE] Loading condition.txt...");
+                    DebugLog("[YDWE] Loading condition.txt...");
                     var conditionData = YDWEParser.ParseYDWEFile(conditionPath, "TriggerConditions");
                     LoadTriggerDataFromIni(conditionData, false);
-                    Console.WriteLine($"[YDWE] Loaded YDWE conditions");
+                    DebugLog("[YDWE] Loaded YDWE conditions");
                 }
 
                 // Load action.txt
                 string actionPath = Path.Combine(ydweDir, "action.txt");
                 if (File.Exists(actionPath))
                 {
-                    Console.WriteLine($"[YDWE] Loading action.txt...");
+                    DebugLog("[YDWE] Loading action.txt...");
                     var actionData = YDWEParser.ParseYDWEFile(actionPath, "TriggerActions");
                     LoadTriggerDataFromIni(actionData, false);
-                    Console.WriteLine($"[YDWE] Loaded YDWE actions");
+                    DebugLog("[YDWE] Loaded YDWE actions");
                 }
 
                 // Load call.txt
                 string callPath = Path.Combine(ydweDir, "call.txt");
                 if (File.Exists(callPath))
                 {
-                    Console.WriteLine($"[YDWE] Loading call.txt...");
+                    DebugLog("[YDWE] Loading call.txt...");
                     var callData = YDWEParser.ParseYDWEFile(callPath, "TriggerCalls");
                     LoadTriggerDataFromIni(callData, false);
-                    Console.WriteLine($"[YDWE] Loaded YDWE calls");
+                    DebugLog("[YDWE] Loaded YDWE calls");
                 }
 
-                Console.WriteLine($"[YDWE] YDWE trigger data loaded successfully!");
+                DebugLog("[YDWE] YDWE trigger data loaded successfully!");
             }
             catch (Exception ex)
             {
                 // Log error but don't crash - YDWE data is optional
-                Console.WriteLine($"Error loading YDWE data: {ex.Message}");
+                DebugLog("Error loading YDWE data: {ex.Message}");
             }
         }
 
