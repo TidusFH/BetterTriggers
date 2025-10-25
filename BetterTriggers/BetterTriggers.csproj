@@ -65,6 +65,11 @@
     <None Remove="Resources\WorldEditorData\Custom\triggerdata_custom_32.txt" />
     <None Remove="Resources\WorldEditorData\Custom\triggerdata_custom_33.txt" />
     <None Remove="Resources\WorldEditorData\Custom\worldeditstrings_custom.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\action.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\call.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\condition.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\define.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\event.txt" />
     <None Remove="Resources\WorldEditorData\destructableskinstrings.txt" />
     <None Remove="Resources\WorldEditorData\humanabilitystrings.txt" />
     <None Remove="Resources\WorldEditorData\humanunitstrings.txt" />
@@ -260,6 +265,21 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\WorldEditorData\Custom\worldeditstrings_custom.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\WorldEditorData\YDWE\action.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\WorldEditorData\YDWE\call.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\WorldEditorData\YDWE\condition.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\WorldEditorData\YDWE\define.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\WorldEditorData\YDWE\event.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\WorldEditorData\destructableskinstrings.txt">

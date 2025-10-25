@@ -588,11 +588,16 @@ namespace BetterTriggers.WorldEdit
         {
             string ydweDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/YDWE");
 
+            Console.WriteLine($"[YDWE] Attempting to load YDWE data from: {ydweDir}");
+
             if (!Directory.Exists(ydweDir))
             {
                 // YDWE directory doesn't exist, skip loading
+                Console.WriteLine($"[YDWE] YDWE directory not found, skipping YDWE loading");
                 return;
             }
+
+            Console.WriteLine($"[YDWE] YDWE directory found, loading YDWE trigger data...");
 
             try
             {
@@ -600,6 +605,7 @@ namespace BetterTriggers.WorldEdit
                 string definePath = Path.Combine(ydweDir, "define.txt");
                 if (File.Exists(definePath))
                 {
+                    Console.WriteLine($"[YDWE] Loading define.txt...");
                     // define.txt uses standard INI format, so use IniFileConverter
                     string defineText = File.ReadAllText(definePath);
                     var defineData = Utility.IniFileConverter.GetIniData(defineText);
@@ -608,6 +614,7 @@ namespace BetterTriggers.WorldEdit
                     if (defineData.Sections.ContainsSection("TriggerTypes"))
                     {
                         var triggerTypes = defineData.Sections["TriggerTypes"];
+                        int typeCount = 0;
                         foreach (var type in triggerTypes)
                         {
                             string[] values = type.Value.Split(",");
@@ -624,15 +631,18 @@ namespace BetterTriggers.WorldEdit
                                 if (Types.Get(key) == null)
                                 {
                                     Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
+                                    typeCount++;
                                 }
                             }
                         }
+                        Console.WriteLine($"[YDWE] Loaded {typeCount} YDWE types");
                     }
 
                     // Load categories
                     if (defineData.Sections.ContainsSection("TriggerCategories"))
                     {
                         var triggerCategories = defineData.Sections["TriggerCategories"];
+                        int categoryCount = 0;
                         foreach (var category in triggerCategories)
                         {
                             string[] values = category.Value.Split(",");
@@ -649,6 +659,7 @@ namespace BetterTriggers.WorldEdit
                                 {
                                     byte[] img = File.ReadAllBytes(iconPath);
                                     Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                    categoryCount++;
                                 }
                                 else
                                 {
@@ -658,10 +669,12 @@ namespace BetterTriggers.WorldEdit
                                     {
                                         byte[] img = File.ReadAllBytes(defaultIconPath);
                                         Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                        categoryCount++;
                                     }
                                 }
                             }
                         }
+                        Console.WriteLine($"[YDWE] Loaded {categoryCount} YDWE categories");
                     }
                 }
 
@@ -669,33 +682,43 @@ namespace BetterTriggers.WorldEdit
                 string eventPath = Path.Combine(ydweDir, "event.txt");
                 if (File.Exists(eventPath))
                 {
+                    Console.WriteLine($"[YDWE] Loading event.txt...");
                     var eventData = YDWEParser.ParseYDWEFile(eventPath, "TriggerEvents");
                     LoadTriggerDataFromIni(eventData, false);
+                    Console.WriteLine($"[YDWE] Loaded {EventTemplates.Count(kvp => btOnlyData.Contains(kvp.Key))} YDWE events");
                 }
 
                 // Load condition.txt
                 string conditionPath = Path.Combine(ydweDir, "condition.txt");
                 if (File.Exists(conditionPath))
                 {
+                    Console.WriteLine($"[YDWE] Loading condition.txt...");
                     var conditionData = YDWEParser.ParseYDWEFile(conditionPath, "TriggerConditions");
                     LoadTriggerDataFromIni(conditionData, false);
+                    Console.WriteLine($"[YDWE] Loaded YDWE conditions");
                 }
 
                 // Load action.txt
                 string actionPath = Path.Combine(ydweDir, "action.txt");
                 if (File.Exists(actionPath))
                 {
+                    Console.WriteLine($"[YDWE] Loading action.txt...");
                     var actionData = YDWEParser.ParseYDWEFile(actionPath, "TriggerActions");
                     LoadTriggerDataFromIni(actionData, false);
+                    Console.WriteLine($"[YDWE] Loaded YDWE actions");
                 }
 
                 // Load call.txt
                 string callPath = Path.Combine(ydweDir, "call.txt");
                 if (File.Exists(callPath))
                 {
+                    Console.WriteLine($"[YDWE] Loading call.txt...");
                     var callData = YDWEParser.ParseYDWEFile(callPath, "TriggerCalls");
                     LoadTriggerDataFromIni(callData, false);
+                    Console.WriteLine($"[YDWE] Loaded YDWE calls");
                 }
+
+                Console.WriteLine($"[YDWE] YDWE trigger data loaded successfully!");
             }
             catch (Exception ex)
             {
