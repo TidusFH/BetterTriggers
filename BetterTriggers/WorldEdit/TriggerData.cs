@@ -243,6 +243,11 @@ namespace BetterTriggers.WorldEdit
             }
 
 
+            // --- LOAD YDWE DATA --- //
+
+            LoadYDWEData();
+
+
             // --- Adds extends to types --- //
 
             Types.Create("agent", false, false, "Agent", string.Empty); // hack
@@ -573,6 +578,129 @@ namespace BetterTriggers.WorldEdit
 
                 customPresets.Add(preset);
                 btOnlyData.Add(keyName);
+            }
+        }
+
+        /// <summary>
+        /// Loads YDWE trigger data files using custom parser.
+        /// </summary>
+        private static void LoadYDWEData()
+        {
+            string ydweDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/YDWE");
+
+            if (!Directory.Exists(ydweDir))
+            {
+                // YDWE directory doesn't exist, skip loading
+                return;
+            }
+
+            try
+            {
+                // Load define.txt for types and categories
+                string definePath = Path.Combine(ydweDir, "define.txt");
+                if (File.Exists(definePath))
+                {
+                    // define.txt uses standard INI format, so use IniFileConverter
+                    string defineText = File.ReadAllText(definePath);
+                    var defineData = Utility.IniFileConverter.GetIniData(defineText);
+
+                    // Load types
+                    if (defineData.Sections.ContainsSection("TriggerTypes"))
+                    {
+                        var triggerTypes = defineData.Sections["TriggerTypes"];
+                        foreach (var type in triggerTypes)
+                        {
+                            string[] values = type.Value.Split(",");
+                            string key = type.KeyName;
+
+                            if (values.Length >= 4)
+                            {
+                                bool canBeGlobal = values[0] == "1";
+                                bool canBeCompared = values[1] == "1";
+                                string displayName = values[3];
+                                string baseType = values.Length >= 5 ? values[4] : null;
+
+                                // Only add if it doesn't already exist
+                                if (Types.Get(key) == null)
+                                {
+                                    Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
+                                }
+                            }
+                        }
+                    }
+
+                    // Load categories
+                    if (defineData.Sections.ContainsSection("TriggerCategories"))
+                    {
+                        var triggerCategories = defineData.Sections["TriggerCategories"];
+                        foreach (var category in triggerCategories)
+                        {
+                            string[] values = category.Value.Split(",");
+
+                            if (values.Length >= 2 && values[1] != "none")
+                            {
+                                string WE_STRING = values[0];
+                                string texturePath = values[1];
+                                bool shouldDisplay = values.Length < 3;
+
+                                // Try to load icon if it exists
+                                string iconPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Icons", Path.GetFileName(texturePath) + ".png");
+                                if (File.Exists(iconPath))
+                                {
+                                    byte[] img = File.ReadAllBytes(iconPath);
+                                    Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                }
+                                else
+                                {
+                                    // Use a default icon if specific one doesn't exist
+                                    string defaultIconPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/Icons/_ui-editoricon-triggercategories_tbd.png");
+                                    if (File.Exists(defaultIconPath))
+                                    {
+                                        byte[] img = File.ReadAllBytes(defaultIconPath);
+                                        Category.Create(category.KeyName, img, WE_STRING, shouldDisplay);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Load event.txt
+                string eventPath = Path.Combine(ydweDir, "event.txt");
+                if (File.Exists(eventPath))
+                {
+                    var eventData = YDWEParser.ParseYDWEFile(eventPath, "TriggerEvents");
+                    LoadTriggerDataFromIni(eventData, false);
+                }
+
+                // Load condition.txt
+                string conditionPath = Path.Combine(ydweDir, "condition.txt");
+                if (File.Exists(conditionPath))
+                {
+                    var conditionData = YDWEParser.ParseYDWEFile(conditionPath, "TriggerConditions");
+                    LoadTriggerDataFromIni(conditionData, false);
+                }
+
+                // Load action.txt
+                string actionPath = Path.Combine(ydweDir, "action.txt");
+                if (File.Exists(actionPath))
+                {
+                    var actionData = YDWEParser.ParseYDWEFile(actionPath, "TriggerActions");
+                    LoadTriggerDataFromIni(actionData, false);
+                }
+
+                // Load call.txt
+                string callPath = Path.Combine(ydweDir, "call.txt");
+                if (File.Exists(callPath))
+                {
+                    var callData = YDWEParser.ParseYDWEFile(callPath, "TriggerCalls");
+                    LoadTriggerDataFromIni(callData, false);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't crash - YDWE data is optional
+                Console.WriteLine($"Error loading YDWE data: {ex.Message}");
             }
         }
 
