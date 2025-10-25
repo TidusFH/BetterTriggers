@@ -245,7 +245,16 @@ namespace BetterTriggers.WorldEdit
 
             // --- LOAD YDWE DATA --- //
 
-            YdweLoader.LoadYdweData(isTest);
+            try
+            {
+                YdweLoader.LoadYdweData(isTest);
+            }
+            catch (Exception ex)
+            {
+                // YDWE loading should never crash the application
+                Console.WriteLine($"Warning: Failed to load YDWE data: {ex.Message}");
+                Console.WriteLine($"BetterTriggers will continue without YDWE support.");
+            }
 
 
             // --- Adds extends to types --- //

@@ -73,23 +73,31 @@ namespace BetterTriggers.WorldEdit
             {
                 foreach (var category in categories)
                 {
-                    string[] values = category.Value.Split(",");
-                    string displayName = values[0];
-                    string iconPath = values.Length > 1 ? values[1] : "none";
-                    bool shouldDisplay = values.Length < 3; // If no third value, should display
-
-                    // Try to load icon if not "none"
-                    if (iconPath != "none")
+                    try
                     {
+                        string[] values = category.Value.Split(",");
+                        string displayName = values[0];
+                        string iconPath = values.Length > 1 ? values[1] : "none";
+                        bool shouldDisplay = values.Length < 3; // If no third value, should display
+
                         // Check if category already exists
                         var existingCategory = Category.Get(category.KeyName);
                         if (existingCategory != null && existingCategory.Icon != null && existingCategory.Icon.Length == 0)
                         {
                             // Category doesn't exist yet (Get returns empty category as hack)
-                            // For now, use a default icon - in the future we could load custom YDWE icons
-                            byte[] defaultIcon = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Resources/Icons/_editor-triggeraction.png"));
-                            Category.Create(category.KeyName, defaultIcon, displayName, shouldDisplay);
+                            // For now, use an empty icon - YDWE categories will use default icons
+                            // In the future, we could load custom YDWE icons from the Warcraft 3 installation
+                            if (iconPath != "none")
+                            {
+                                byte[] emptyIcon = new byte[0]; // Use empty icon to avoid file system issues
+                                Category.Create(category.KeyName, emptyIcon, displayName, shouldDisplay);
+                                Console.WriteLine($"Created YDWE category: {category.KeyName} - {displayName}");
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Failed to load YDWE category {category.KeyName}: {ex.Message}");
                     }
                 }
             }
@@ -100,19 +108,27 @@ namespace BetterTriggers.WorldEdit
             {
                 foreach (var type in triggerTypes)
                 {
-                    string[] values = type.Value.Split(",");
-                    string key = type.KeyName;
+                    try
+                    {
+                        string[] values = type.Value.Split(",");
+                        string key = type.KeyName;
 
-                    // Skip if type already exists
-                    if (Types.Get(key) != null)
-                        continue;
+                        // Skip if type already exists
+                        if (Types.Get(key) != null)
+                            continue;
 
-                    bool canBeGlobal = values[1] == "1";
-                    bool canBeCompared = values[2] == "1";
-                    string displayName = values[3];
-                    string baseType = values.Length >= 5 ? values[4] : null;
+                        bool canBeGlobal = values[1] == "1";
+                        bool canBeCompared = values[2] == "1";
+                        string displayName = values[3];
+                        string baseType = values.Length >= 5 ? values[4] : null;
 
-                    Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
+                        Types.Create(key, canBeGlobal, canBeCompared, displayName, baseType);
+                        Console.WriteLine($"Created YDWE type: {key} - {displayName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Failed to load YDWE type {type.KeyName}: {ex.Message}");
+                    }
                 }
             }
         }
