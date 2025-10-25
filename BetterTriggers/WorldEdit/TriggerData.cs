@@ -330,7 +330,7 @@ namespace BetterTriggers.WorldEdit
             var triggerTypes = data.Sections["TriggerTypes"];
             if (triggerTypes != null)
             {
-                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerTypes.Keys.Count} trigger types...");
+                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerTypes.Count} trigger types...");
             }
             foreach (var type in triggerTypes)
             {
@@ -368,7 +368,7 @@ namespace BetterTriggers.WorldEdit
             var triggerParams = data.Sections["TriggerParams"];
             if (triggerParams != null)
             {
-                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerParams.Keys.Count} trigger params...");
+                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerParams.Count} trigger params...");
             }
             foreach (var preset in triggerParams)
             {
@@ -464,7 +464,7 @@ namespace BetterTriggers.WorldEdit
             if (section == null)
                 return;
 
-            Console.WriteLine($"[LoadFunctions] Processing {sectionName} with {section.Keys.Count} keys...");
+            Console.WriteLine($"[LoadFunctions] Processing {sectionName} with {section.Count} keys...");
             string name = string.Empty;
             FunctionTemplate functionTemplate = null;
             int processed = 0;
@@ -473,7 +473,7 @@ namespace BetterTriggers.WorldEdit
                 processed++;
                 if (processed % 100 == 0)
                 {
-                    Console.WriteLine($"[LoadFunctions] Processed {processed}/{section.Keys.Count} keys in {sectionName}...");
+                    Console.WriteLine($"[LoadFunctions] Processed {processed}/{section.Count} keys in {sectionName}...");
                 }
                 string key = _func.KeyName;
 
