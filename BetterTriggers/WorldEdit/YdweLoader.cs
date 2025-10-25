@@ -22,9 +22,15 @@ namespace BetterTriggers.WorldEdit
             if (isTest)
                 return; // Skip YDWE loading in tests for now
 
-            string ydwePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources/WorldEditorData/YDWE");
+            string ydwePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "WorldEditorData", "YDWE");
+
             if (!Directory.Exists(ydwePath))
+            {
+                Console.WriteLine($"YDWE directory not found at: {ydwePath}");
                 return; // YDWE files not present
+            }
+
+            Console.WriteLine($"Loading YDWE data from: {ydwePath}");
 
             try
             {
@@ -42,11 +48,14 @@ namespace BetterTriggers.WorldEdit
 
                 // Load calls (functions that return values) from call.txt (TOML format)
                 LoadYdweTomlFunctions(Path.Combine(ydwePath, "call.txt"), TriggerData.CallTemplates, TriggerElementType.None);
+
+                Console.WriteLine("YDWE data loaded successfully");
             }
             catch (Exception ex)
             {
                 // Log error but don't crash - just skip YDWE if there's a problem
                 Console.WriteLine($"Error loading YDWE data: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -111,9 +120,14 @@ namespace BetterTriggers.WorldEdit
         private static void LoadYdweTomlFunctions(string filePath, Dictionary<string, FunctionTemplate> dictionary, TriggerElementType elementType)
         {
             if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"YDWE file not found: {filePath}");
                 return;
+            }
 
-            string tomlText = File.ReadAllText(filePath);
+            Console.WriteLine($"Loading YDWE {elementType} from: {Path.GetFileName(filePath)}");
+
+            string tomlText = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
             TomlTable table;
 
             try
@@ -123,8 +137,11 @@ namespace BetterTriggers.WorldEdit
             catch (Exception ex)
             {
                 Console.WriteLine($"Error parsing TOML file {filePath}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return;
             }
+
+            int loadedCount = 0;
 
             foreach (var entry in table)
             {
@@ -204,12 +221,16 @@ namespace BetterTriggers.WorldEdit
                     {
                         TriggerData.BoolExprTempaltes.Add(functionName);
                     }
+
+                    loadedCount++;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error loading YDWE function {functionName}: {ex.Message}");
                 }
             }
+
+            Console.WriteLine($"Loaded {loadedCount} YDWE {elementType} functions");
         }
 
         private static string GetTomlString(TomlTable table, string key, string defaultValue)

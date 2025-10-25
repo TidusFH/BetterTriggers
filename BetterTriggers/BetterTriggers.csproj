@@ -91,6 +91,11 @@
     <None Remove="Resources\WorldEditorData\upgradeskinstrings.txt" />
     <None Remove="Resources\WorldEditorData\worldeditgamestrings.txt" />
     <None Remove="Resources\WorldEditorData\worldeditstrings.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\action.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\call.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\condition.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\define.txt" />
+    <None Remove="Resources\WorldEditorData\YDWE\event.txt" />
   </ItemGroup>
 
   <ItemGroup>
