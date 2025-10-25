@@ -243,20 +243,6 @@ namespace BetterTriggers.WorldEdit
             }
 
 
-            // --- LOAD YDWE DATA --- //
-
-            try
-            {
-                YdweLoader.LoadYdweData(isTest);
-            }
-            catch (Exception ex)
-            {
-                // YDWE loading should never crash the application
-                Console.WriteLine($"Warning: Failed to load YDWE data: {ex.Message}");
-                Console.WriteLine($"BetterTriggers will continue without YDWE support.");
-            }
-
-
             // --- Adds extends to types --- //
 
             Types.Create("agent", false, false, "Agent", string.Empty); // hack
@@ -283,6 +269,21 @@ namespace BetterTriggers.WorldEdit
                 if (_type != null)
                     Types.Get(type).Extends = extends;
             });
+
+
+            // --- LOAD YDWE DATA --- //
+            // Load YDWE at the very end after all base initialization is complete
+
+            try
+            {
+                YdweLoader.LoadYdweData(isTest);
+            }
+            catch (Exception ex)
+            {
+                // YDWE loading should never crash the application
+                Console.WriteLine($"Warning: Failed to load YDWE data: {ex.Message}");
+                Console.WriteLine($"BetterTriggers will continue without YDWE support.");
+            }
         }
 
         private static void LoadTranslations(bool isTest)

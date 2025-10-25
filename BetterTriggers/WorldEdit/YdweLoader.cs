@@ -17,10 +17,19 @@ namespace BetterTriggers.WorldEdit
     /// </summary>
     public static class YdweLoader
     {
+        // Set this to false to completely disable YDWE loading (for testing)
+        private const bool ENABLE_YDWE = true;
+
         public static void LoadYdweData(bool isTest)
         {
             if (isTest)
                 return; // Skip YDWE loading in tests for now
+
+            if (!ENABLE_YDWE)
+            {
+                Console.WriteLine("YDWE loading is disabled");
+                return;
+            }
 
             string ydwePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "WorldEditorData", "YDWE");
 
