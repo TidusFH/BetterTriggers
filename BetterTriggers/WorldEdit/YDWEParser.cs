@@ -39,8 +39,13 @@ namespace BetterTriggers.WorldEdit
         /// <returns>IniData object containing parsed functions</returns>
         public static IniData ParseYDWEFile(string filePath, string sectionName)
         {
+            Console.WriteLine($"[YDWE Parser] Parsing {Path.GetFileName(filePath)}...");
             var functions = ParseYDWEFunctions(filePath);
-            return ConvertToIniData(functions, sectionName);
+            Console.WriteLine($"[YDWE Parser] Parsed {functions.Count} functions from {Path.GetFileName(filePath)}");
+            Console.WriteLine($"[YDWE Parser] Converting to IniData format...");
+            var result = ConvertToIniData(functions, sectionName);
+            Console.WriteLine($"[YDWE Parser] Conversion complete for {Path.GetFileName(filePath)}");
+            return result;
         }
 
         /// <summary>

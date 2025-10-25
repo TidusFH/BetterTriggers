@@ -323,10 +323,15 @@ namespace BetterTriggers.WorldEdit
 
         private static void LoadTriggerDataFromIni(IniData data, bool isTest)
         {
+            Console.WriteLine($"[LoadTriggerDataFromIni] Starting to load trigger data from IniData...");
 
             // --- TRIGGER TYPES (GUI VARIABLE TYPE DEFINITIONS) --- //
 
             var triggerTypes = data.Sections["TriggerTypes"];
+            if (triggerTypes != null)
+            {
+                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerTypes.Keys.Count} trigger types...");
+            }
             foreach (var type in triggerTypes)
             {
                 string[] values = type.Value.Split(",");
@@ -361,6 +366,10 @@ namespace BetterTriggers.WorldEdit
             // --- TRIGGER PARAMS (CONSTANTS OR PRESETS) --- //
 
             var triggerParams = data.Sections["TriggerParams"];
+            if (triggerParams != null)
+            {
+                Console.WriteLine($"[LoadTriggerDataFromIni] Loading {triggerParams.Keys.Count} trigger params...");
+            }
             foreach (var preset in triggerParams)
             {
                 string[] values = preset.Value.Split(",");
@@ -401,10 +410,12 @@ namespace BetterTriggers.WorldEdit
 
             // --- TRIGGER FUNCTIONS --- //
 
+            Console.WriteLine($"[LoadTriggerDataFromIni] Loading trigger functions...");
             LoadFunctions(data, "TriggerEvents", EventTemplates, TriggerElementType.Event);
             LoadFunctions(data, "TriggerConditions", ConditionTemplates, TriggerElementType.Condition);
             LoadFunctions(data, "TriggerActions", ActionTemplates, TriggerElementType.Action);
             LoadFunctions(data, "TriggerCalls", CallTemplates, TriggerElementType.None);
+            Console.WriteLine($"[LoadTriggerDataFromIni] Completed loading trigger functions.");
 
 
 
@@ -453,10 +464,17 @@ namespace BetterTriggers.WorldEdit
             if (section == null)
                 return;
 
+            Console.WriteLine($"[LoadFunctions] Processing {sectionName} with {section.Keys.Count} keys...");
             string name = string.Empty;
             FunctionTemplate functionTemplate = null;
+            int processed = 0;
             foreach (var _func in section)
             {
+                processed++;
+                if (processed % 100 == 0)
+                {
+                    Console.WriteLine($"[LoadFunctions] Processed {processed}/{section.Keys.Count} keys in {sectionName}...");
+                }
                 string key = _func.KeyName;
 
 
@@ -554,6 +572,7 @@ namespace BetterTriggers.WorldEdit
                     }
                 }
             }
+            Console.WriteLine($"[LoadFunctions] Completed processing {sectionName}. Processed {processed} keys total.");
         }
 
         /// <summary>
@@ -684,8 +703,9 @@ namespace BetterTriggers.WorldEdit
                 {
                     Console.WriteLine($"[YDWE] Loading event.txt...");
                     var eventData = YDWEParser.ParseYDWEFile(eventPath, "TriggerEvents");
+                    Console.WriteLine($"[YDWE] Passing event.txt to LoadTriggerDataFromIni...");
                     LoadTriggerDataFromIni(eventData, false);
-                    Console.WriteLine($"[YDWE] Loaded {EventTemplates.Count(kvp => btOnlyData.Contains(kvp.Key))} YDWE events");
+                    Console.WriteLine($"[YDWE] Event.txt loaded successfully");
                 }
 
                 // Load condition.txt
