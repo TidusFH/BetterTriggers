@@ -59,6 +59,16 @@ namespace BetterTriggers.WorldEdit
                 LoadYdweTomlFunctions(Path.Combine(ydwePath, "call.txt"), TriggerData.CallTemplates, TriggerElementType.None);
 
                 Console.WriteLine("YDWE data loaded successfully");
+
+                // Verify CameraSetupApplyForceDuration was loaded
+                if (TriggerData.ActionTemplates.ContainsKey("CameraSetupApplyForceDuration"))
+                {
+                    Console.WriteLine("✓ CameraSetupApplyForceDuration found in ActionTemplates");
+                }
+                else
+                {
+                    Console.WriteLine("✗ CameraSetupApplyForceDuration NOT found in ActionTemplates");
+                }
             }
             catch (Exception ex)
             {
@@ -256,6 +266,16 @@ namespace BetterTriggers.WorldEdit
             }
 
             Console.WriteLine($"Loaded {loadedCount} YDWE {elementType} functions");
+
+            // Log first few function names for verification
+            if (loadedCount > 0 && loadedCount <= 5)
+            {
+                Console.WriteLine($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(loadedCount))}");
+            }
+            else if (loadedCount > 5)
+            {
+                Console.WriteLine($"  Sample functions: {string.Join(", ", dictionary.Keys.TakeLast(5))}");
+            }
         }
 
         private static string GetTomlString(TomlTable table, string key, string defaultValue)
