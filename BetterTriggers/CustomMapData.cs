@@ -124,10 +124,10 @@ namespace BetterTriggers
                 Thread.Sleep(1000);
             }
 
-            // Try to open map with BetterTriggers' TriggerData to support YDWE functions
-            // War3Net needs TriggerData to parse triggers, but it doesn't have YDWE functions
-            // We pass null TriggerData to skip trigger validation during map loading
-            MPQMap = Map.Open(fullMapPath, null);
+            // Exclude Triggers flag to avoid War3Net parsing triggers with TriggerData.Default
+            // War3Net's TriggerData.Default doesn't have YDWE functions, causing KeyNotFoundException
+            // BetterTriggers handles trigger parsing separately via TriggerConverter
+            MPQMap = Map.Open(fullMapPath, MapFiles.All & ~MapFiles.Triggers);
 
             Info.Load();
             MapStrings.Load();
