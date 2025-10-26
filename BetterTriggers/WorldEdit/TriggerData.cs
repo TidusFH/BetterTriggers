@@ -884,6 +884,25 @@ namespace BetterTriggers.WorldEdit
                 }
 
                 DebugLog($"[YDWE] YDWE trigger data loaded successfully!");
+
+                // Debug: Verify specific functions are loaded
+                if (ActionTemplates.ContainsKey("CameraSetupApplyForceDuration"))
+                {
+                    DebugLog($"[YDWE] SUCCESS: CameraSetupApplyForceDuration is in ActionTemplates");
+                }
+                else
+                {
+                    DebugLog($"[YDWE] WARNING: CameraSetupApplyForceDuration is NOT in ActionTemplates!");
+                }
+
+                if (FunctionsAll.ContainsKey("CameraSetupApplyForceDuration"))
+                {
+                    DebugLog($"[YDWE] SUCCESS: CameraSetupApplyForceDuration is in FunctionsAll");
+                }
+                else
+                {
+                    DebugLog($"[YDWE] WARNING: CameraSetupApplyForceDuration is NOT in FunctionsAll!");
+                }
             }
             catch (Exception ex)
             {
