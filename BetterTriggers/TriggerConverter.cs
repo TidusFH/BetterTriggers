@@ -95,8 +95,25 @@ namespace BetterTriggers.WorldEdit
             DebugLog($"Total ActionTemplates: {actionCount}");
             DebugLog($"Total FunctionsAll: {functionCount}");
 
-            CustomMapData.Load(mapPath, false);
-            DebugLog($"CustomMapData.Load completed");
+            try
+            {
+                DebugLog($"Calling CustomMapData.Load()...");
+                CustomMapData.Load(mapPath, false);
+                DebugLog($"CustomMapData.Load completed");
+            }
+            catch (Exception ex)
+            {
+                DebugLog($"ERROR in CustomMapData.Load(): {ex.GetType().Name}");
+                DebugLog($"ERROR Message: {ex.Message}");
+                DebugLog($"ERROR Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    DebugLog($"INNER Exception: {ex.InnerException.GetType().Name}");
+                    DebugLog($"INNER Message: {ex.InnerException.Message}");
+                    DebugLog($"INNER Stack Trace: {ex.InnerException.StackTrace}");
+                }
+                throw; // Re-throw the exception
+            }
 
             var map = CustomMapData.MPQMap;
             DebugLog($"Got MPQ map reference");
