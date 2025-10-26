@@ -42,14 +42,37 @@ namespace BetterTriggers.WorldEdit
 
         Dictionary<int, War3ProjectFileEntry> projectFilesEntries = new Dictionary<int, War3ProjectFileEntry>(); // [id, file entry in the project]
 
+        // Debug logging to file
+        private static string debugLogPath = Path.Combine(Directory.GetCurrentDirectory(), "conversion_debug.log");
+        private static void DebugLog(string message)
+        {
+            string logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+            try
+            {
+                File.AppendAllText(debugLogPath, logMessage + Environment.NewLine);
+            }
+            catch { /* Ignore file write errors */ }
+        }
+
         public TriggerConverter(string mapPath)
         {
+            // Clear previous debug log
+            try { if (File.Exists(debugLogPath)) File.Delete(debugLogPath); } catch { }
+            DebugLog($"=== TriggerConverter STARTED ===");
+            DebugLog($"Map path: {mapPath}");
+
             this.mapPath = mapPath;
             Load(mapPath);
         }
 
         public TriggerConverter(string mapPath, string mapPathProjectToImportInto)
         {
+            // Clear previous debug log
+            try { if (File.Exists(debugLogPath)) File.Delete(debugLogPath); } catch { }
+            DebugLog($"=== TriggerConverter STARTED ===");
+            DebugLog($"Map path: {mapPath}");
+            DebugLog($"Import into: {mapPathProjectToImportInto}");
+
             this.mapPath = mapPath;
             this.mapPathProjectToImportInto = mapPathProjectToImportInto;
             Load(mapPath);
@@ -57,6 +80,7 @@ namespace BetterTriggers.WorldEdit
 
         private void Load(string mapPath)
         {
+            DebugLog($"Loading map triggers...");
             CustomMapData.Load(mapPath, false);
 
             var map = CustomMapData.MPQMap;
@@ -663,15 +687,17 @@ namespace BetterTriggers.WorldEdit
         {
             triggerFunctions.ForEach(function =>
             {
+                DebugLog($"Processing function: {function.Name}");
                 ECA te;
                 try
                 {
                     te = TriggerElementFactory.Create(function.Name);
+                    DebugLog($"  Successfully created trigger element for: {function.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[TriggerConverter] ERROR creating trigger element for function '{function.Name}': {ex.Message}");
-                    Console.WriteLine($"[TriggerConverter] Stack trace: {ex.StackTrace}");
+                    DebugLog($"ERROR creating trigger element for function '{function.Name}': {ex.Message}");
+                    DebugLog($"Stack trace: {ex.StackTrace}");
                     throw new Exception($"Failed to create trigger element for function '{function.Name}'. This might be a YDWE function that isn't loaded. Error: {ex.Message}", ex);
                 }
 
@@ -680,11 +706,12 @@ namespace BetterTriggers.WorldEdit
                 try
                 {
                     te.function.parameters = CreateParameters(function.Parameters);
+                    DebugLog($"  Successfully created {function.Parameters.Count} parameters for: {function.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[TriggerConverter] ERROR creating parameters for function '{function.Name}': {ex.Message}");
-                    Console.WriteLine($"[TriggerConverter] Stack trace: {ex.StackTrace}");
+                    DebugLog($"ERROR creating parameters for function '{function.Name}': {ex.Message}");
+                    DebugLog($"Stack trace: {ex.StackTrace}");
                     throw new Exception($"Failed to create parameters for function '{function.Name}'. Error: {ex.Message}", ex);
                 }
 
