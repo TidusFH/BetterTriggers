@@ -123,7 +123,11 @@ namespace BetterTriggers
             {
                 Thread.Sleep(1000);
             }
-            MPQMap = Map.Open(fullMapPath);
+
+            // Try to open map with BetterTriggers' TriggerData to support YDWE functions
+            // War3Net needs TriggerData to parse triggers, but it doesn't have YDWE functions
+            // We pass null TriggerData to skip trigger validation during map loading
+            MPQMap = Map.Open(fullMapPath, null);
 
             Info.Load();
             MapStrings.Load();
