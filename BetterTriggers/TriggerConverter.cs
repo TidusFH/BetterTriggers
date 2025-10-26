@@ -81,6 +81,20 @@ namespace BetterTriggers.WorldEdit
         private void Load(string mapPath)
         {
             DebugLog($"Loading map triggers...");
+
+            // Verify TriggerData is loaded
+            DebugLog($"Checking if TriggerData is loaded...");
+            DebugLog($"Init.HasLoaded: {Init.HasLoaded}");
+
+            // Check if YDWE functions are available
+            bool hasCameraSetup = WorldEdit.TriggerData.ActionTemplates.ContainsKey("CameraSetupApplyForceDuration");
+            DebugLog($"CameraSetupApplyForceDuration in ActionTemplates: {hasCameraSetup}");
+
+            int actionCount = WorldEdit.TriggerData.ActionTemplates.Count;
+            int functionCount = WorldEdit.TriggerData.FunctionsAll.Count;
+            DebugLog($"Total ActionTemplates: {actionCount}");
+            DebugLog($"Total FunctionsAll: {functionCount}");
+
             CustomMapData.Load(mapPath, false);
 
             var map = CustomMapData.MPQMap;
