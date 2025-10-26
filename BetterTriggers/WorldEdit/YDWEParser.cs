@@ -70,9 +70,15 @@ namespace BetterTriggers.WorldEdit
             var functions = new List<YDWEFunction>();
 
             if (!File.Exists(filePath))
+            {
+                DebugLog($"[YDWE Parser] File not found: {filePath}");
                 return functions;
+            }
 
+            DebugLog($"[YDWE Parser] Reading file: {filePath}");
             var lines = File.ReadAllLines(filePath, Encoding.UTF8);
+            DebugLog($"[YDWE Parser] File has {lines.Length} lines");
+
             YDWEFunction currentFunction = null;
             YDWEArgument currentArg = null;
             bool inArgsSection = false;
@@ -94,6 +100,10 @@ namespace BetterTriggers.WorldEdit
                     if (currentFunction != null)
                     {
                         functions.Add(currentFunction);
+                        if (currentFunction.Name == "CameraSetupApplyForceDuration")
+                        {
+                            DebugLog($"[YDWE Parser] Found CameraSetupApplyForceDuration with {currentFunction.Arguments.Count} arguments");
+                        }
                     }
 
                     // Start new function
@@ -181,8 +191,13 @@ namespace BetterTriggers.WorldEdit
             if (currentFunction != null)
             {
                 functions.Add(currentFunction);
+                if (currentFunction.Name == "CameraSetupApplyForceDuration")
+                {
+                    DebugLog($"[YDWE Parser] Found CameraSetupApplyForceDuration (last function) with {currentFunction.Arguments.Count} arguments");
+                }
             }
 
+            DebugLog($"[YDWE Parser] Total functions parsed: {functions.Count}");
             return functions;
         }
 
@@ -195,6 +210,8 @@ namespace BetterTriggers.WorldEdit
         {
             var iniData = new IniData();
             var section = new SectionData(sectionName);
+
+            DebugLog($"[YDWE Parser] Converting {functions.Count} functions to IniData for section {sectionName}");
 
             foreach (var func in functions)
             {
@@ -219,6 +236,14 @@ namespace BetterTriggers.WorldEdit
 
                 string functionValue = string.Join(",", paramTypes);
                 section.Keys.AddKey(func.Name, functionValue);
+
+                if (func.Name == "CameraSetupApplyForceDuration")
+                {
+                    DebugLog($"[YDWE Parser] Adding CameraSetupApplyForceDuration: {functionValue}");
+                    DebugLog($"[YDWE Parser]   Title: {func.Title}");
+                    DebugLog($"[YDWE Parser]   Description: {func.Description}");
+                    DebugLog($"[YDWE Parser]   Category: {func.Category}");
+                }
 
                 // Add DisplayName
                 if (!string.IsNullOrEmpty(func.Title))
