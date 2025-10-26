@@ -272,20 +272,26 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerEvents]");
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
-                // Main line format: FunctionName=version,paramType1,paramType2,...
-                // Version 0 = vanilla WC3, 1 = TFT or later
-                sb.AppendLine($"{evt.name}=0");
+                // Build parameter types list
+                var paramTypes = new List<string>();
+                if (evt.parameters != null)
+                {
+                    foreach (var param in evt.parameters)
+                    {
+                        paramTypes.Add(param.returnType ?? "nothing");
+                    }
+                }
 
-                // Optional metadata lines (prefixed with _FunctionName_)
-                if (!string.IsNullOrEmpty(evt.value))
-                {
-                    sb.AppendLine($"_{evt.name}_DisplayName={evt.value}");
-                }
-                if (!string.IsNullOrEmpty(evt.category))
-                {
-                    sb.AppendLine($"_{evt.name}_Category={evt.category}");
-                }
-                sb.AppendLine(); // Blank line between functions
+                // Main line format: FunctionName=version,paramType1,paramType2,...
+                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                sb.AppendLine($"{evt.name}=0{paramTypesStr}");
+
+                // Required metadata lines
+                sb.AppendLine($"_{evt.name}_DisplayName={evt.value ?? evt.name}");
+                sb.AppendLine($"_{evt.name}_Parameters={evt.paramText ?? ""}");
+                sb.AppendLine($"_{evt.name}_Defaults=");
+                sb.AppendLine($"_{evt.name}_Category={evt.category ?? "TC_NOTHING"}");
+                sb.AppendLine();
             }
             sb.AppendLine();
 
@@ -293,15 +299,21 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerConditions]");
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
-                sb.AppendLine($"{cond.name}=0");
-                if (!string.IsNullOrEmpty(cond.value))
+                var paramTypes = new List<string>();
+                if (cond.parameters != null)
                 {
-                    sb.AppendLine($"_{cond.name}_DisplayName={cond.value}");
+                    foreach (var param in cond.parameters)
+                    {
+                        paramTypes.Add(param.returnType ?? "nothing");
+                    }
                 }
-                if (!string.IsNullOrEmpty(cond.category))
-                {
-                    sb.AppendLine($"_{cond.name}_Category={cond.category}");
-                }
+
+                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                sb.AppendLine($"{cond.name}=0{paramTypesStr}");
+                sb.AppendLine($"_{cond.name}_DisplayName={cond.value ?? cond.name}");
+                sb.AppendLine($"_{cond.name}_Parameters={cond.paramText ?? ""}");
+                sb.AppendLine($"_{cond.name}_Defaults=");
+                sb.AppendLine($"_{cond.name}_Category={cond.category ?? "TC_NOTHING"}");
                 sb.AppendLine();
             }
             sb.AppendLine();
@@ -310,15 +322,21 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerActions]");
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
-                sb.AppendLine($"{action.name}=0");
-                if (!string.IsNullOrEmpty(action.value))
+                var paramTypes = new List<string>();
+                if (action.parameters != null)
                 {
-                    sb.AppendLine($"_{action.name}_DisplayName={action.value}");
+                    foreach (var param in action.parameters)
+                    {
+                        paramTypes.Add(param.returnType ?? "nothing");
+                    }
                 }
-                if (!string.IsNullOrEmpty(action.category))
-                {
-                    sb.AppendLine($"_{action.name}_Category={action.category}");
-                }
+
+                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                sb.AppendLine($"{action.name}=0{paramTypesStr}");
+                sb.AppendLine($"_{action.name}_DisplayName={action.value ?? action.name}");
+                sb.AppendLine($"_{action.name}_Parameters={action.paramText ?? ""}");
+                sb.AppendLine($"_{action.name}_Defaults=");
+                sb.AppendLine($"_{action.name}_Category={action.category ?? "TC_NOTHING"}");
                 sb.AppendLine();
             }
             sb.AppendLine();
@@ -327,15 +345,21 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerCalls]");
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
-                sb.AppendLine($"{call.name}=0");
-                if (!string.IsNullOrEmpty(call.value))
+                var paramTypes = new List<string>();
+                if (call.parameters != null)
                 {
-                    sb.AppendLine($"_{call.name}_DisplayName={call.value}");
+                    foreach (var param in call.parameters)
+                    {
+                        paramTypes.Add(param.returnType ?? "nothing");
+                    }
                 }
-                if (!string.IsNullOrEmpty(call.category))
-                {
-                    sb.AppendLine($"_{call.name}_Category={call.category}");
-                }
+
+                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                sb.AppendLine($"{call.name}=0{paramTypesStr}");
+                sb.AppendLine($"_{call.name}_DisplayName={call.value ?? call.name}");
+                sb.AppendLine($"_{call.name}_Parameters={call.paramText ?? ""}");
+                sb.AppendLine($"_{call.name}_Defaults=");
+                sb.AppendLine($"_{call.name}_Category={call.category ?? "TC_NOTHING"}");
                 sb.AppendLine();
             }
             sb.AppendLine();
