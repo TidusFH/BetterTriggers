@@ -46,6 +46,7 @@ namespace BetterTriggers.WorldEdit
 
         private static HashSet<string> btOnlyData = new HashSet<string>();
         private static bool isBT = false;
+        private static bool isYDWE = false;
 
         // Debug logging to file
         private static string debugLogPath = Path.Combine(Directory.GetCurrentDirectory(), "ydwe_debug.log");
@@ -487,10 +488,23 @@ namespace BetterTriggers.WorldEdit
                     name = displayText,
                     codeText = codeText,
                 };
-                PresetTemplates.Add(key, presetTemplate);
-                ParamDisplayNames.Add(key, displayText);
-                ParamCodeText.Add(key, codeText);
-                if (isBT)
+
+                // Allow YDWE to override existing presets
+                if (isYDWE && PresetTemplates.ContainsKey(key))
+                {
+                    DebugLog($"[LoadTriggerDataFromIni] YDWE override: replacing existing preset {key}");
+                    PresetTemplates[key] = presetTemplate;
+                    ParamDisplayNames[key] = displayText;
+                    ParamCodeText[key] = codeText;
+                }
+                else if (!PresetTemplates.ContainsKey(key))
+                {
+                    PresetTemplates.Add(key, presetTemplate);
+                    ParamDisplayNames.Add(key, displayText);
+                    ParamCodeText.Add(key, codeText);
+                }
+
+                if (isBT || isYDWE)
                 {
                     btOnlyData.Add(key);
                 }
@@ -573,17 +587,26 @@ namespace BetterTriggers.WorldEdit
                     if (key.EndsWith("DisplayName"))
                     {
                         functionTemplate.name = _func.Value.Replace("\"", "");
-                        ParamDisplayNames.TryAdd(name, functionTemplate.name);
+                        if (isYDWE)
+                            ParamDisplayNames[name] = functionTemplate.name;
+                        else
+                            ParamDisplayNames.TryAdd(name, functionTemplate.name);
                     }
                     else if (key.EndsWith("Parameters"))
                     {
                         functionTemplate.paramText = _func.Value.Replace("\"", "");
-                        ParamCodeText.TryAdd(name, functionTemplate.paramText);
+                        if (isYDWE)
+                            ParamCodeText[name] = functionTemplate.paramText;
+                        else
+                            ParamCodeText.TryAdd(name, functionTemplate.paramText);
                     }
                     else if (key.EndsWith("Category"))
                     {
                         functionTemplate.category = _func.Value;
-                        FunctionCategories.TryAdd(name, functionTemplate.category);
+                        if (isYDWE)
+                            FunctionCategories[name] = functionTemplate.category;
+                        else
+                            FunctionCategories.TryAdd(name, functionTemplate.category);
                     }
                     else if (key.EndsWith("Defaults"))
                     {
@@ -609,6 +632,13 @@ namespace BetterTriggers.WorldEdit
                         {
                             DebugLog($"[LoadFunctions] Skipping duplicate function in FunctionsAll: {name}");
                         }
+                    }
+                    else if (isYDWE)
+                    {
+                        // YDWE data should override base game functions
+                        DebugLog($"[LoadFunctions] YDWE override: replacing existing function {name}");
+                        dictionary[name] = functionTemplate;
+                        FunctionsAll[name] = functionTemplate;
                     }
                 }
                 else
@@ -714,6 +744,8 @@ namespace BetterTriggers.WorldEdit
             }
 
             DebugLog($"[YDWE] YDWE directory found, loading YDWE trigger data...");
+            DebugLog($"[YDWE] Setting isYDWE flag to allow overriding base game functions");
+            isYDWE = true;
 
             try
             {
@@ -857,6 +889,11 @@ namespace BetterTriggers.WorldEdit
             {
                 // Log error but don't crash - YDWE data is optional
                 DebugLog($"Error loading YDWE data: {ex.Message}");
+            }
+            finally
+            {
+                isYDWE = false;
+                DebugLog($"[YDWE] Reset isYDWE flag");
             }
         }
 
