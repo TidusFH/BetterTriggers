@@ -96,32 +96,50 @@ namespace BetterTriggers.WorldEdit
             DebugLog($"Total FunctionsAll: {functionCount}");
 
             CustomMapData.Load(mapPath, false);
+            DebugLog($"CustomMapData.Load completed");
 
             var map = CustomMapData.MPQMap;
+            DebugLog($"Got MPQ map reference");
             //var map = Map.Open(mapPath);
             if (map.Triggers == null)
+            {
+                DebugLog($"Map has no triggers, returning");
                 return;
+            }
 
+            DebugLog($"Map has triggers, processing...");
             triggers = map.Triggers;
+            DebugLog($"Got triggers reference");
+
             var customTextTriggers = map.CustomTextTriggers;
+            DebugLog($"Got custom text triggers");
+
             rootComment = customTextTriggers.GlobalCustomScriptComment;
             if (customTextTriggers.GlobalCustomScriptCode != null)
             {
                 if (customTextTriggers.GlobalCustomScriptCode.Code.Length > 0)
                     rootHeader = customTextTriggers.GlobalCustomScriptCode.Code.Replace("\0", ""); // remove NUL char
             }
+            DebugLog($"Processed global custom script");
+
             customTextTriggers.CustomTextTriggers.ForEach(item =>
             {
                 wctStrings.Add(item.Code.Replace("\0", "")); // remove NUL char
             });
+            DebugLog($"Processed {wctStrings.Count} custom text triggers");
+
             mapInfo = map.Info;
             language = mapInfo.ScriptLanguage;
+            DebugLog($"Got map info, language: {language}");
+
             var wts = map.TriggerStrings;
             wts.Strings.ForEach(trigStr => triggerStrings.TryAdd(trigStr.Key, trigStr.Value));
+            DebugLog($"Processed {triggerStrings.Count} trigger strings");
 
             // Prepare all trigger items
             if (triggers != null)
             {
+                DebugLog($"Processing {triggers.Variables.Count} variables...");
                 // First, gather all variables names and ids
                 for (int i = 0; i < triggers.Variables.Count; i++)
                 {
@@ -136,7 +154,9 @@ namespace BetterTriggers.WorldEdit
                         explorerVariables_byName.Add(variable.Name, CreateVariable(variable));
                     }
                 }
+                DebugLog($"Variables processed successfully");
 
+                DebugLog($"Processing {triggers.TriggerItems.Count} trigger items...");
                 // Then, gather all trigger names and ids
                 for (int i = 0; i < triggers.TriggerItems.Count; i++)
                 {
@@ -158,7 +178,9 @@ namespace BetterTriggers.WorldEdit
                         triggerIds.TryAdd(nameFormatted, triggerItem.Id);
                     }
                 }
+                DebugLog($"Trigger items processed successfully");
             }
+            DebugLog($"=== Load() completed successfully ===");
         }
 
         /// <summary>
@@ -167,7 +189,11 @@ namespace BetterTriggers.WorldEdit
         /// <returns>Project file path.</returns>
         public string Convert(string projectDestinationDir)
         {
-            return ConvertAllTriggers(projectDestinationDir);
+            DebugLog($"=== Convert() STARTED ===");
+            DebugLog($"Destination: {projectDestinationDir}");
+            string result = ConvertAllTriggers(projectDestinationDir);
+            DebugLog($"=== Convert() completed successfully ===");
+            return result;
         }
 
         public List<ExplorerElement> ConvertAll_NoWrite()
@@ -401,7 +427,10 @@ namespace BetterTriggers.WorldEdit
 
         private string ConvertAllTriggers(string fullPath)
         {
+            DebugLog($"[ConvertAllTriggers] Creating new project...");
             string projectPath = Project.Create(language, Path.GetFileName(fullPath), Path.GetDirectoryName(fullPath), false);
+            DebugLog($"[ConvertAllTriggers] Project created at: {projectPath}");
+
             War3Project project = JsonConvert.DeserializeObject<War3Project>(File.ReadAllText(projectPath));
             string src = Path.Combine(Path.GetDirectoryName(projectPath), "src");
 
@@ -409,9 +438,11 @@ namespace BetterTriggers.WorldEdit
             project.Comment = rootComment;
             project.Header = rootHeader;
             triggerPaths.Add(0, src);
+            DebugLog($"[ConvertAllTriggers] Project initialized");
 
             if (triggers != null)
             {
+                DebugLog($"[ConvertAllTriggers] Processing {triggers.TriggerItems.Count} trigger items...");
                 int variablesFolderID = RandomUtil.GenerateInt();
                 if (triggers.SubVersion == null)
                 {
@@ -478,24 +509,33 @@ namespace BetterTriggers.WorldEdit
                     if (triggerItem is DeletedTriggerItem || triggerItem.Type is TriggerItemType.RootCategory)
                         continue;
 
+                    DebugLog($"[ConvertAllTriggers] Processing trigger item #{i}: {triggerItem.Name} (Type: {triggerItem.Type})");
                     ExplorerElement explorerElement = CreateExplorerElement(triggerItem);
                     if (explorerElement == null)
+                    {
+                        DebugLog($"[ConvertAllTriggers] Skipping null explorer element for: {triggerItem.Name}");
                         continue;
+                    }
 
                     triggerPaths.TryAdd(triggerItem.Id, explorerElement.GetPath());
 
                     elements.Add(explorerElement);
                     WriteToProjectFileAndDisk(explorerElement, triggerItem.Id, triggerItem.ParentId);
+                    DebugLog($"[ConvertAllTriggers] Successfully processed: {triggerItem.Name}");
                 }
+                DebugLog($"[ConvertAllTriggers] All trigger items processed");
             }
 
+            DebugLog($"[ConvertAllTriggers] Writing project file...");
             File.WriteAllText(projectPath, JsonConvert.SerializeObject(project, Formatting.Indented));
+            DebugLog($"[ConvertAllTriggers] Project file written");
 
             return projectPath;
         }
 
         private ExplorerElement CreateExplorerElement(TriggerItem triggerItem)
         {
+            DebugLog($"[CreateExplorerElement] Creating element for: {triggerItem.Name} (Type: {triggerItem.Type})");
             ExplorerElement explorerElement = null;
 
             switch (triggerItem.Type)
@@ -636,6 +676,7 @@ namespace BetterTriggers.WorldEdit
 
         private ExplorerElement CreateTrigger(TriggerDefinition triggerDefinition)
         {
+            DebugLog($"[CreateTrigger] Starting for: {triggerDefinition.Name}");
             if (triggerDefinition == null)
                 return null;
 
@@ -661,11 +702,13 @@ namespace BetterTriggers.WorldEdit
             wctIndex++;
             if (triggerDefinition.IsCustomTextTrigger)
             {
+                DebugLog($"[CreateTrigger] Custom text trigger, skipping function parsing");
                 trigger.IsScript = triggerDefinition.IsCustomTextTrigger;
                 trigger.RunOnMapInit = triggerDefinition.RunOnMapInit;
                 return explorerElementTrigger;
             }
 
+            DebugLog($"[CreateTrigger] Parsing {triggerDefinition.Functions.Count} functions...");
             List<TriggerFunction> Events = new List<TriggerFunction>();
             List<TriggerFunction> Conditions = new List<TriggerFunction>();
             List<TriggerFunction> Actions = new List<TriggerFunction>();
@@ -690,9 +733,13 @@ namespace BetterTriggers.WorldEdit
                 }
             });
 
+            DebugLog($"[CreateTrigger] Creating {Events.Count} events...");
             CreateSubElements(explorerElementTrigger.trigger.Events, Events);
+            DebugLog($"[CreateTrigger] Creating {Conditions.Count} conditions...");
             CreateSubElements(explorerElementTrigger.trigger.Conditions, Conditions);
+            DebugLog($"[CreateTrigger] Creating {Actions.Count} actions...");
             CreateSubElements(explorerElementTrigger.trigger.Actions, Actions);
+            DebugLog($"[CreateTrigger] Completed for: {triggerDefinition.Name}");
 
             return explorerElementTrigger;
         }
