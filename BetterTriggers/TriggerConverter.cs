@@ -663,9 +663,30 @@ namespace BetterTriggers.WorldEdit
         {
             triggerFunctions.ForEach(function =>
             {
-                ECA te = TriggerElementFactory.Create(function.Name);
+                ECA te;
+                try
+                {
+                    te = TriggerElementFactory.Create(function.Name);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[TriggerConverter] ERROR creating trigger element for function '{function.Name}': {ex.Message}");
+                    Console.WriteLine($"[TriggerConverter] Stack trace: {ex.StackTrace}");
+                    throw new Exception($"Failed to create trigger element for function '{function.Name}'. This might be a YDWE function that isn't loaded. Error: {ex.Message}", ex);
+                }
+
                 te.IsEnabled = function.IsEnabled;
-                te.function.parameters = CreateParameters(function.Parameters);
+
+                try
+                {
+                    te.function.parameters = CreateParameters(function.Parameters);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[TriggerConverter] ERROR creating parameters for function '{function.Name}': {ex.Message}");
+                    Console.WriteLine($"[TriggerConverter] Stack trace: {ex.StackTrace}");
+                    throw new Exception($"Failed to create parameters for function '{function.Name}'. Error: {ex.Message}", ex);
+                }
 
                 triggerElements.Elements.Add(te);
 
