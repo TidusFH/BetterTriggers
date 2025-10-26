@@ -207,31 +207,19 @@ namespace BetterTriggers
             // Export BetterTriggers' TriggerData to War3Net's INI format
             var sb = new StringBuilder();
 
-            // TriggerCategories section
+            // TriggerCategories section (minimal, not critical for parsing)
             sb.AppendLine("[TriggerCategories]");
-            foreach (var category in WorldEdit.TriggerData.Categories.GetAll())
-            {
-                // Format: key=name,icon,displayFlag
-                sb.AppendLine($"{category.InternalName}={category.DisplayName},,0");
-            }
             sb.AppendLine();
 
-            // TriggerTypes section
+            // TriggerTypes section (minimal, not critical for parsing)
             sb.AppendLine("[TriggerTypes]");
-            foreach (var type in WorldEdit.TriggerData.Types.GetAll())
-            {
-                // Format: key=parentType,canBeGlobal,canBeCompared,importType,displayText
-                string canBeGlobal = type.CanBeGlobal ? "1" : "0";
-                string canBeCompared = type.CanBeCompared ? "1" : "0";
-                sb.AppendLine($"{type.InternalName}=,{canBeGlobal},{canBeCompared},{type.BaseType},{type.DisplayName}");
-            }
             sb.AppendLine();
 
-            // TriggerParams section (skip for now, complex)
+            // TriggerParams section
             sb.AppendLine("[TriggerParams]");
             sb.AppendLine();
 
-            // TriggerTypeDefaults section (skip for now)
+            // TriggerTypeDefaults section
             sb.AppendLine("[TriggerTypeDefaults]");
             sb.AppendLine();
 
@@ -240,7 +228,7 @@ namespace BetterTriggers
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
                 // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{evt.InternalName}={evt.Category?.InternalName ?? "TC_NOTHING"},{evt.ReturnType?.InternalName ?? "nothing"},1,{evt.value}");
+                sb.AppendLine($"{evt.name}={evt.category ?? "TC_NOTHING"},{evt.returnType ?? "nothing"},1,{evt.value}");
             }
             sb.AppendLine();
 
@@ -249,7 +237,7 @@ namespace BetterTriggers
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
                 // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{cond.InternalName}={cond.Category?.InternalName ?? "TC_NOTHING"},{cond.ReturnType?.InternalName ?? "boolean"},1,{cond.value}");
+                sb.AppendLine($"{cond.name}={cond.category ?? "TC_NOTHING"},{cond.returnType ?? "boolean"},1,{cond.value}");
             }
             sb.AppendLine();
 
@@ -258,7 +246,7 @@ namespace BetterTriggers
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
                 // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{action.InternalName}={action.Category?.InternalName ?? "TC_NOTHING"},nothing,1,{action.value}");
+                sb.AppendLine($"{action.name}={action.category ?? "TC_NOTHING"},nothing,1,{action.value}");
             }
             sb.AppendLine();
 
@@ -267,7 +255,7 @@ namespace BetterTriggers
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
                 // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{call.InternalName}={call.Category?.InternalName ?? "TC_NOTHING"},{call.ReturnType?.InternalName ?? "nothing"},1,{call.value}");
+                sb.AppendLine($"{call.name}={call.category ?? "TC_NOTHING"},{call.returnType ?? "nothing"},1,{call.value}");
             }
             sb.AppendLine();
 
@@ -277,9 +265,21 @@ namespace BetterTriggers
             sb.AppendLine("[DefaultTriggers]");
             sb.AppendLine();
 
-            // Create War3Net TriggerData from the INI string
+            // Create War3Net TriggerData using reflection (constructor is internal)
             using var stringReader = new StringReader(sb.ToString());
-            return new War3Net.Build.Script.TriggerData(stringReader);
+            var triggerDataType = typeof(War3Net.Build.Script.TriggerData);
+            var constructor = triggerDataType.GetConstructor(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null,
+                new[] { typeof(StringReader) },
+                null);
+
+            if (constructor == null)
+            {
+                throw new Exception("Could not find TriggerData constructor via reflection");
+            }
+
+            return (War3Net.Build.Script.TriggerData)constructor.Invoke(new object[] { stringReader });
         }
 
         /// <summary>
