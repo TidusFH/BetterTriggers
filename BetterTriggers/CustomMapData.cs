@@ -272,8 +272,20 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerEvents]");
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
-                // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{evt.name}={evt.category ?? "TC_NOTHING"},{evt.returnType ?? "nothing"},1,{evt.value}");
+                // Main line format: FunctionName=version,paramType1,paramType2,...
+                // Version 0 = vanilla WC3, 1 = TFT or later
+                sb.AppendLine($"{evt.name}=0");
+
+                // Optional metadata lines (prefixed with _FunctionName_)
+                if (!string.IsNullOrEmpty(evt.value))
+                {
+                    sb.AppendLine($"_{evt.name}_DisplayName={evt.value}");
+                }
+                if (!string.IsNullOrEmpty(evt.category))
+                {
+                    sb.AppendLine($"_{evt.name}_Category={evt.category}");
+                }
+                sb.AppendLine(); // Blank line between functions
             }
             sb.AppendLine();
 
@@ -281,8 +293,16 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerConditions]");
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
-                // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{cond.name}={cond.category ?? "TC_NOTHING"},{cond.returnType ?? "boolean"},1,{cond.value}");
+                sb.AppendLine($"{cond.name}=0");
+                if (!string.IsNullOrEmpty(cond.value))
+                {
+                    sb.AppendLine($"_{cond.name}_DisplayName={cond.value}");
+                }
+                if (!string.IsNullOrEmpty(cond.category))
+                {
+                    sb.AppendLine($"_{cond.name}_Category={cond.category}");
+                }
+                sb.AppendLine();
             }
             sb.AppendLine();
 
@@ -290,8 +310,16 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerActions]");
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
-                // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{action.name}={action.category ?? "TC_NOTHING"},nothing,1,{action.value}");
+                sb.AppendLine($"{action.name}=0");
+                if (!string.IsNullOrEmpty(action.value))
+                {
+                    sb.AppendLine($"_{action.name}_DisplayName={action.value}");
+                }
+                if (!string.IsNullOrEmpty(action.category))
+                {
+                    sb.AppendLine($"_{action.name}_Category={action.category}");
+                }
+                sb.AppendLine();
             }
             sb.AppendLine();
 
@@ -299,8 +327,16 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerCalls]");
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
-                // Format: key=category,returnType,isEnabled,displayText
-                sb.AppendLine($"{call.name}={call.category ?? "TC_NOTHING"},{call.returnType ?? "nothing"},1,{call.value}");
+                sb.AppendLine($"{call.name}=0");
+                if (!string.IsNullOrEmpty(call.value))
+                {
+                    sb.AppendLine($"_{call.name}_DisplayName={call.value}");
+                }
+                if (!string.IsNullOrEmpty(call.category))
+                {
+                    sb.AppendLine($"_{call.name}_Category={call.category}");
+                }
+                sb.AppendLine();
             }
             sb.AppendLine();
 
