@@ -126,8 +126,12 @@ namespace BetterTriggers
 
             // Exclude Triggers flag to avoid War3Net parsing triggers with TriggerData.Default
             // War3Net's TriggerData.Default doesn't have YDWE functions, causing KeyNotFoundException
-            // BetterTriggers handles trigger parsing separately via TriggerConverter
+            // We'll load triggers manually after loading BetterTriggers' TriggerData
             MPQMap = Map.Open(fullMapPath, MapFiles.All & ~MapFiles.Triggers);
+
+            // Manually load triggers using BetterTriggers' TriggerData which includes YDWE functions
+            // This must be done AFTER WorldEdit.TriggerData is initialized
+            LoadTriggersManually(fullMapPath);
 
             Info.Load();
             MapStrings.Load();
@@ -165,6 +169,118 @@ namespace BetterTriggers
             }
         }
 
+        private static void LoadTriggersManually(string fullMapPath)
+        {
+            try
+            {
+                // Check if trigger file exists in the map
+                using var mpqArchive = MpqArchive.Open(fullMapPath);
+                if (!MpqFile.Exists(mpqArchive, War3Net.Build.Script.MapTriggers.FileName))
+                {
+                    // No triggers in map, nothing to load
+                    return;
+                }
+
+                // Read the trigger file from MPQ
+                using var triggerStream = MpqFile.OpenRead(mpqArchive, War3Net.Build.Script.MapTriggers.FileName);
+                using var triggerReader = new BinaryReader(triggerStream);
+
+                // Create custom TriggerData from BetterTriggers' data (includes YDWE functions)
+                var customTriggerData = CreateWar3NetTriggerData();
+
+                // Parse triggers using custom TriggerData
+                var mapTriggers = triggerReader.ReadMapTriggers(customTriggerData);
+
+                // Assign to MPQMap
+                MPQMap.Triggers = mapTriggers;
+            }
+            catch (Exception ex)
+            {
+                // If manual trigger loading fails, log but don't crash
+                // TriggerConverter will handle missing triggers gracefully
+                System.Diagnostics.Debug.WriteLine($"Failed to load triggers manually: {ex.Message}");
+            }
+        }
+
+        private static War3Net.Build.Script.TriggerData CreateWar3NetTriggerData()
+        {
+            // Export BetterTriggers' TriggerData to War3Net's INI format
+            var sb = new StringBuilder();
+
+            // TriggerCategories section
+            sb.AppendLine("[TriggerCategories]");
+            foreach (var category in WorldEdit.TriggerData.Categories.GetAll())
+            {
+                // Format: key=name,icon,displayFlag
+                sb.AppendLine($"{category.InternalName}={category.DisplayName},,0");
+            }
+            sb.AppendLine();
+
+            // TriggerTypes section
+            sb.AppendLine("[TriggerTypes]");
+            foreach (var type in WorldEdit.TriggerData.Types.GetAll())
+            {
+                // Format: key=parentType,canBeGlobal,canBeCompared,importType,displayText
+                string canBeGlobal = type.CanBeGlobal ? "1" : "0";
+                string canBeCompared = type.CanBeCompared ? "1" : "0";
+                sb.AppendLine($"{type.InternalName}=,{canBeGlobal},{canBeCompared},{type.BaseType},{type.DisplayName}");
+            }
+            sb.AppendLine();
+
+            // TriggerParams section (skip for now, complex)
+            sb.AppendLine("[TriggerParams]");
+            sb.AppendLine();
+
+            // TriggerTypeDefaults section (skip for now)
+            sb.AppendLine("[TriggerTypeDefaults]");
+            sb.AppendLine();
+
+            // TriggerEvents section
+            sb.AppendLine("[TriggerEvents]");
+            foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
+            {
+                // Format: key=category,returnType,isEnabled,displayText
+                sb.AppendLine($"{evt.InternalName}={evt.Category?.InternalName ?? "TC_NOTHING"},{evt.ReturnType?.InternalName ?? "nothing"},1,{evt.value}");
+            }
+            sb.AppendLine();
+
+            // TriggerConditions section
+            sb.AppendLine("[TriggerConditions]");
+            foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
+            {
+                // Format: key=category,returnType,isEnabled,displayText
+                sb.AppendLine($"{cond.InternalName}={cond.Category?.InternalName ?? "TC_NOTHING"},{cond.ReturnType?.InternalName ?? "boolean"},1,{cond.value}");
+            }
+            sb.AppendLine();
+
+            // TriggerActions section
+            sb.AppendLine("[TriggerActions]");
+            foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
+            {
+                // Format: key=category,returnType,isEnabled,displayText
+                sb.AppendLine($"{action.InternalName}={action.Category?.InternalName ?? "TC_NOTHING"},nothing,1,{action.value}");
+            }
+            sb.AppendLine();
+
+            // TriggerCalls section
+            sb.AppendLine("[TriggerCalls]");
+            foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
+            {
+                // Format: key=category,returnType,isEnabled,displayText
+                sb.AppendLine($"{call.InternalName}={call.Category?.InternalName ?? "TC_NOTHING"},{call.ReturnType?.InternalName ?? "nothing"},1,{call.value}");
+            }
+            sb.AppendLine();
+
+            // DefaultTriggerCategories and DefaultTriggers (skip, not needed for parsing)
+            sb.AppendLine("[DefaultTriggerCategories]");
+            sb.AppendLine();
+            sb.AppendLine("[DefaultTriggers]");
+            sb.AppendLine();
+
+            // Create War3Net TriggerData from the INI string
+            using var stringReader = new StringReader(sb.ToString());
+            return new War3Net.Build.Script.TriggerData(stringReader);
+        }
 
         /// <summary>
         /// Removes all used map data that no longer exists in the map.
