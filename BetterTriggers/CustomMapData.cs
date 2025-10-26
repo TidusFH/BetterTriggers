@@ -169,36 +169,81 @@ namespace BetterTriggers
             }
         }
 
+        private static string manualLoadLogPath = Path.Combine(Directory.GetCurrentDirectory(), "manual_trigger_load.log");
+
+        private static void ManualLoadDebugLog(string message)
+        {
+            string logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+            try
+            {
+                File.AppendAllText(manualLoadLogPath, logMessage + Environment.NewLine);
+            }
+            catch { }
+        }
+
         private static void LoadTriggersManually(string fullMapPath)
         {
             try
             {
+                // Clear previous log
+                try { if (File.Exists(manualLoadLogPath)) File.Delete(manualLoadLogPath); } catch { }
+
+                ManualLoadDebugLog("=== LoadTriggersManually STARTED ===");
+                ManualLoadDebugLog($"Map path: {fullMapPath}");
+
                 // Check if trigger file exists in the map
                 using var mpqArchive = MpqArchive.Open(fullMapPath);
+                ManualLoadDebugLog($"MPQ archive opened successfully");
+
                 if (!MpqFile.Exists(mpqArchive, War3Net.Build.Script.MapTriggers.FileName))
                 {
-                    // No triggers in map, nothing to load
+                    ManualLoadDebugLog($"No {War3Net.Build.Script.MapTriggers.FileName} file found in map");
                     return;
                 }
+
+                ManualLoadDebugLog($"Found {War3Net.Build.Script.MapTriggers.FileName} in map");
 
                 // Read the trigger file from MPQ
                 using var triggerStream = MpqFile.OpenRead(mpqArchive, War3Net.Build.Script.MapTriggers.FileName);
                 using var triggerReader = new BinaryReader(triggerStream);
+                ManualLoadDebugLog($"Trigger file opened for reading");
 
                 // Create custom TriggerData from BetterTriggers' data (includes YDWE functions)
+                ManualLoadDebugLog($"Creating custom TriggerData...");
+                ManualLoadDebugLog($"  EventTemplates count: {WorldEdit.TriggerData.EventTemplates.Count}");
+                ManualLoadDebugLog($"  ConditionTemplates count: {WorldEdit.TriggerData.ConditionTemplates.Count}");
+                ManualLoadDebugLog($"  ActionTemplates count: {WorldEdit.TriggerData.ActionTemplates.Count}");
+                ManualLoadDebugLog($"  CallTemplates count: {WorldEdit.TriggerData.CallTemplates.Count}");
+
                 var customTriggerData = CreateWar3NetTriggerData();
+                ManualLoadDebugLog($"Custom TriggerData created successfully");
 
                 // Parse triggers using custom TriggerData
+                ManualLoadDebugLog($"Parsing triggers with custom TriggerData...");
                 var mapTriggers = triggerReader.ReadMapTriggers(customTriggerData);
+                ManualLoadDebugLog($"Triggers parsed successfully");
+                ManualLoadDebugLog($"  Trigger count: {mapTriggers?.TriggerItems?.Count ?? 0}");
+                ManualLoadDebugLog($"  Variable count: {mapTriggers?.Variables?.Count ?? 0}");
 
                 // Assign to MPQMap
                 MPQMap.Triggers = mapTriggers;
+                ManualLoadDebugLog($"Triggers assigned to MPQMap.Triggers");
+                ManualLoadDebugLog($"=== LoadTriggersManually COMPLETED ===");
             }
             catch (Exception ex)
             {
-                // If manual trigger loading fails, log but don't crash
-                // TriggerConverter will handle missing triggers gracefully
-                System.Diagnostics.Debug.WriteLine($"Failed to load triggers manually: {ex.Message}");
+                ManualLoadDebugLog($"ERROR: {ex.GetType().Name}");
+                ManualLoadDebugLog($"ERROR Message: {ex.Message}");
+                ManualLoadDebugLog($"ERROR Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    ManualLoadDebugLog($"INNER Exception: {ex.InnerException.GetType().Name}");
+                    ManualLoadDebugLog($"INNER Message: {ex.InnerException.Message}");
+                    ManualLoadDebugLog($"INNER Stack Trace: {ex.InnerException.StackTrace}");
+                }
+
+                // Re-throw to see if this is causing the issue
+                throw;
             }
         }
 
@@ -265,8 +310,22 @@ namespace BetterTriggers
             sb.AppendLine("[DefaultTriggers]");
             sb.AppendLine();
 
+            // Save generated TriggerData to file for debugging
+            string generatedData = sb.ToString();
+            try
+            {
+                string debugPath = Path.Combine(Directory.GetCurrentDirectory(), "generated_triggerdata.txt");
+                File.WriteAllText(debugPath, generatedData);
+                ManualLoadDebugLog($"Generated TriggerData saved to: {debugPath}");
+                ManualLoadDebugLog($"Generated TriggerData length: {generatedData.Length} chars");
+            }
+            catch (Exception ex)
+            {
+                ManualLoadDebugLog($"Failed to save generated TriggerData: {ex.Message}");
+            }
+
             // Create War3Net TriggerData using reflection (constructor is internal)
-            using var stringReader = new StringReader(sb.ToString());
+            using var stringReader = new StringReader(generatedData);
             var triggerDataType = typeof(War3Net.Build.Script.TriggerData);
             var constructor = triggerDataType.GetConstructor(
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
