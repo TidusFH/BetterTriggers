@@ -320,15 +320,27 @@ namespace BetterTriggers.WorldEdit
             // --- LOAD YDWE DATA --- //
 
             LoadYDWEData();
+            DebugLog($"[MAIN] YDWE data loading completed, continuing with type extensions...");
 
 
             // --- Adds extends to types --- //
 
-            Types.Create("agent", false, false, "Agent", string.Empty); // hack
+            DebugLog($"[MAIN] Creating 'agent' type if it doesn't exist...");
+            if (Types.Get("agent") == null)
+            {
+                Types.Create("agent", false, false, "Agent", string.Empty); // hack
+                DebugLog($"[MAIN] 'agent' type created.");
+            }
+            else
+            {
+                DebugLog($"[MAIN] 'agent' type already exists (likely from YDWE), skipping creation.");
+            }
 
-
+            DebugLog($"[MAIN] Reading common.j file from: {pathCommonJ}");
             string[] commonJfile = File.ReadAllLines(pathCommonJ);
+            DebugLog($"[MAIN] common.j file read successfully, {commonJfile.Length} lines");
             List<string> types = new List<string>();
+            DebugLog($"[MAIN] Processing common.j file to extract type definitions...");
             for (int i = 0; i < commonJfile.Length; i++)
             {
                 commonJfile[i] = Regex.Replace(commonJfile[i], @"\s+", " ");
@@ -337,7 +349,9 @@ namespace BetterTriggers.WorldEdit
                     types.Add(commonJfile[i]);
                 }
             }
+            DebugLog($"[MAIN] Found {types.Count} type definitions in common.j");
 
+            DebugLog($"[MAIN] Setting type extensions...");
             types.ForEach(line =>
             {
                 string[] split = line.Split(" ");
@@ -348,6 +362,8 @@ namespace BetterTriggers.WorldEdit
                 if (_type != null)
                     Types.Get(type).Extends = extends;
             });
+            DebugLog($"[MAIN] Type extensions set successfully");
+            DebugLog($"=== TriggerData.Load() COMPLETED SUCCESSFULLY ===");
         }
 
         private static void LoadTranslations(bool isTest)
