@@ -291,6 +291,23 @@ namespace BetterTriggers
                 .Replace("}", "");
         }
 
+        private static bool IsWar3NetCompatibleName(string functionName)
+        {
+            // War3Net's INI parser uses underscore (_) as separator for metadata lines
+            // Function names containing underscores break the parser
+            // Also skip names with angle brackets which cause other parsing issues
+            if (string.IsNullOrEmpty(functionName))
+                return false;
+
+            // Check for problematic characters that break War3Net's metadata parsing
+            if (functionName.Contains("_"))
+                return false;
+            if (functionName.Contains("<") || functionName.Contains(">"))
+                return false;
+
+            return true;
+        }
+
         private static War3Net.Build.Script.TriggerData CreateWar3NetTriggerData()
         {
             // Export BetterTriggers' TriggerData to War3Net's INI format
@@ -322,6 +339,7 @@ namespace BetterTriggers
             sb.AppendLine("[TriggerEvents]");
             int eventCount = 0;
             int eventSkipped = 0;
+            int eventSkippedIncompatible = 0;
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
                 try
@@ -334,6 +352,14 @@ namespace BetterTriggers
                         continue;
                     }
                     addedEvents.Add(evt.name);
+
+                    // Skip functions with names incompatible with War3Net's parser
+                    if (!IsWar3NetCompatibleName(evt.name))
+                    {
+                        eventSkippedIncompatible++;
+                        ManualLoadDebugLog($"Skipping event with incompatible name (contains _ or <>): {evt.name}");
+                        continue;
+                    }
 
                     eventCount++;
 
@@ -366,12 +392,13 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {eventCount} events successfully (skipped {eventSkipped} duplicates)");
+            ManualLoadDebugLog($"Processed {eventCount} events successfully (skipped {eventSkipped} duplicates, {eventSkippedIncompatible} incompatible names)");
 
             // TriggerConditions section
             sb.AppendLine("[TriggerConditions]");
             int conditionCount = 0;
             int conditionSkipped = 0;
+            int conditionSkippedIncompatible = 0;
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
                 try
@@ -384,6 +411,14 @@ namespace BetterTriggers
                         continue;
                     }
                     addedConditions.Add(cond.name);
+
+                    // Skip functions with names incompatible with War3Net's parser
+                    if (!IsWar3NetCompatibleName(cond.name))
+                    {
+                        conditionSkippedIncompatible++;
+                        ManualLoadDebugLog($"Skipping condition with incompatible name (contains _ or <>): {cond.name}");
+                        continue;
+                    }
 
                     conditionCount++;
 
@@ -412,12 +447,13 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {conditionCount} conditions successfully (skipped {conditionSkipped} duplicates)");
+            ManualLoadDebugLog($"Processed {conditionCount} conditions successfully (skipped {conditionSkipped} duplicates, {conditionSkippedIncompatible} incompatible names)");
 
             // TriggerActions section
             sb.AppendLine("[TriggerActions]");
             int actionCount = 0;
             int actionSkipped = 0;
+            int actionSkippedIncompatible = 0;
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
                 try
@@ -430,6 +466,14 @@ namespace BetterTriggers
                         continue;
                     }
                     addedActions.Add(action.name);
+
+                    // Skip functions with names incompatible with War3Net's parser
+                    if (!IsWar3NetCompatibleName(action.name))
+                    {
+                        actionSkippedIncompatible++;
+                        ManualLoadDebugLog($"Skipping action with incompatible name (contains _ or <>): {action.name}");
+                        continue;
+                    }
 
                     actionCount++;
 
@@ -458,12 +502,13 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {actionCount} actions successfully (skipped {actionSkipped} duplicates)");
+            ManualLoadDebugLog($"Processed {actionCount} actions successfully (skipped {actionSkipped} duplicates, {actionSkippedIncompatible} incompatible names)");
 
             // TriggerCalls section
             sb.AppendLine("[TriggerCalls]");
             int callCount = 0;
             int callSkipped = 0;
+            int callSkippedIncompatible = 0;
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
                 try
@@ -476,6 +521,14 @@ namespace BetterTriggers
                         continue;
                     }
                     addedCalls.Add(call.name);
+
+                    // Skip functions with names incompatible with War3Net's parser
+                    if (!IsWar3NetCompatibleName(call.name))
+                    {
+                        callSkippedIncompatible++;
+                        ManualLoadDebugLog($"Skipping call with incompatible name (contains _ or <>): {call.name}");
+                        continue;
+                    }
 
                     callCount++;
 
@@ -508,7 +561,7 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {callCount} calls successfully (skipped {callSkipped} duplicates)");
+            ManualLoadDebugLog($"Processed {callCount} calls successfully (skipped {callSkipped} duplicates, {callSkippedIncompatible} incompatible names)");
 
             // DefaultTriggerCategories and DefaultTriggers (skip, not needed for parsing)
             sb.AppendLine("[DefaultTriggerCategories]");
