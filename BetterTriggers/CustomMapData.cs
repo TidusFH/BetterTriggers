@@ -247,6 +247,21 @@ namespace BetterTriggers
             }
         }
 
+        private static string SanitizeFunctionName(string functionName)
+        {
+            // War3Net's parser has issues with certain characters in metadata line prefixes
+            // Replace or remove problematic characters: < > _ (and others)
+            // Use a simple alphanumeric + safe characters approach
+            if (string.IsNullOrEmpty(functionName))
+                return functionName;
+
+            // Replace angle brackets and other problematic chars with safe alternatives
+            return functionName
+                .Replace("<", "")
+                .Replace(">", "")
+                .Replace("_", "");  // Remove underscores to avoid parsing conflicts
+        }
+
         private static War3Net.Build.Script.TriggerData CreateWar3NetTriggerData()
         {
             // Export BetterTriggers' TriggerData to War3Net's INI format
@@ -307,10 +322,12 @@ namespace BetterTriggers
                     sb.AppendLine($"{evt.name}=0{paramTypesStr}");
 
                     // Required metadata lines - ALL must be present
-                    sb.AppendLine($"_{evt.name}_DisplayName={evt.value ?? evt.name}");
-                    sb.AppendLine($"_{evt.name}_Parameters={evt.paramText ?? ""}");
-                    sb.AppendLine($"_{evt.name}_Defaults=_");  // Use underscore for empty, not blank
-                    sb.AppendLine($"_{evt.name}_Category={evt.category ?? "TC_NOTHING"}");
+                    // Use sanitized name for metadata line prefixes to avoid special character issues
+                    string sanitizedName = SanitizeFunctionName(evt.name);
+                    sb.AppendLine($"_{sanitizedName}_DisplayName={evt.value ?? evt.name}");
+                    sb.AppendLine($"_{sanitizedName}_Parameters={evt.paramText ?? ""}");
+                    sb.AppendLine($"_{sanitizedName}_Defaults=_");  // Use underscore for empty, not blank
+                    sb.AppendLine($"_{sanitizedName}_Category={evt.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -350,10 +367,13 @@ namespace BetterTriggers
 
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{cond.name}=0{paramTypesStr}");
-                    sb.AppendLine($"_{cond.name}_DisplayName={cond.value ?? cond.name}");
-                    sb.AppendLine($"_{cond.name}_Parameters={cond.paramText ?? ""}");
-                    sb.AppendLine($"_{cond.name}_Defaults=_");
-                    sb.AppendLine($"_{cond.name}_Category={cond.category ?? "TC_NOTHING"}");
+
+                    // Use sanitized name for metadata line prefixes to avoid special character issues
+                    string sanitizedName = SanitizeFunctionName(cond.name);
+                    sb.AppendLine($"_{sanitizedName}_DisplayName={cond.value ?? cond.name}");
+                    sb.AppendLine($"_{sanitizedName}_Parameters={cond.paramText ?? ""}");
+                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
+                    sb.AppendLine($"_{sanitizedName}_Category={cond.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -393,10 +413,13 @@ namespace BetterTriggers
 
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{action.name}=0{paramTypesStr}");
-                    sb.AppendLine($"_{action.name}_DisplayName={action.value ?? action.name}");
-                    sb.AppendLine($"_{action.name}_Parameters={action.paramText ?? ""}");
-                    sb.AppendLine($"_{action.name}_Defaults=_");
-                    sb.AppendLine($"_{action.name}_Category={action.category ?? "TC_NOTHING"}");
+
+                    // Use sanitized name for metadata line prefixes to avoid special character issues
+                    string sanitizedName = SanitizeFunctionName(action.name);
+                    sb.AppendLine($"_{sanitizedName}_DisplayName={action.value ?? action.name}");
+                    sb.AppendLine($"_{sanitizedName}_Parameters={action.paramText ?? ""}");
+                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
+                    sb.AppendLine($"_{sanitizedName}_Category={action.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -436,10 +459,13 @@ namespace BetterTriggers
 
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{call.name}=0{paramTypesStr}");
-                    sb.AppendLine($"_{call.name}_DisplayName={call.value ?? call.name}");
-                    sb.AppendLine($"_{call.name}_Parameters={call.paramText ?? ""}");
-                    sb.AppendLine($"_{call.name}_Defaults=_");
-                    sb.AppendLine($"_{call.name}_Category={call.category ?? "TC_NOTHING"}");
+
+                    // Use sanitized name for metadata line prefixes to avoid special character issues
+                    string sanitizedName = SanitizeFunctionName(call.name);
+                    sb.AppendLine($"_{sanitizedName}_DisplayName={call.value ?? call.name}");
+                    sb.AppendLine($"_{sanitizedName}_Parameters={call.paramText ?? ""}");
+                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
+                    sb.AppendLine($"_{sanitizedName}_Category={call.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
