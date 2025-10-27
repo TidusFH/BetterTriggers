@@ -302,12 +302,6 @@ namespace BetterTriggers
             var addedActions = new HashSet<string>();
             var addedCalls = new HashSet<string>();
 
-            // Also track sanitized names to catch duplicates after sanitization
-            var addedSanitizedEvents = new HashSet<string>();
-            var addedSanitizedConditions = new HashSet<string>();
-            var addedSanitizedActions = new HashSet<string>();
-            var addedSanitizedCalls = new HashSet<string>();
-
             // TriggerCategories section (minimal, not critical for parsing)
             sb.AppendLine("[TriggerCategories]");
             sb.AppendLine();
@@ -343,26 +337,6 @@ namespace BetterTriggers
 
                     eventCount++;
 
-                    // Sanitize function name to avoid special characters breaking War3Net's parser
-                    string sanitizedName = SanitizeFunctionName(evt.name);
-
-                    // Skip if sanitized name is empty (all special chars)
-                    if (string.IsNullOrEmpty(sanitizedName))
-                    {
-                        eventSkipped++;
-                        ManualLoadDebugLog($"Skipping event with empty sanitized name: {evt.name}");
-                        continue;
-                    }
-
-                    // Skip if sanitized name is a duplicate (different original names became same after sanitization)
-                    if (addedSanitizedEvents.Contains(sanitizedName))
-                    {
-                        eventSkipped++;
-                        ManualLoadDebugLog($"Skipping event with duplicate sanitized name: {evt.name} -> {sanitizedName}");
-                        continue;
-                    }
-                    addedSanitizedEvents.Add(sanitizedName);
-
                     // Build parameter types list
                     var paramTypes = new List<string>();
                     if (evt.parameters != null)
@@ -374,16 +348,16 @@ namespace BetterTriggers
                     }
 
                     // Main line format: FunctionName=version,paramType1,paramType2,...
-                    // Use ORIGINAL name for main line (War3Net looks up functions by original name)
-                    // Use SANITIZED name for metadata prefixes (to avoid INI parsing errors)
+                    // Use ORIGINAL name for BOTH main line AND metadata prefixes
+                    // War3Net requires these to match exactly for validation
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{evt.name}=0{paramTypesStr}");
 
-                    // Required metadata lines - use sanitized name for prefixes only
-                    sb.AppendLine($"_{sanitizedName}_DisplayName={evt.value ?? evt.name}");
-                    sb.AppendLine($"_{sanitizedName}_Parameters={evt.paramText ?? ""}");
-                    sb.AppendLine($"_{sanitizedName}_Defaults=_");  // Use underscore for empty, not blank
-                    sb.AppendLine($"_{sanitizedName}_Category={evt.category ?? "TC_NOTHING"}");
+                    // Required metadata lines - use ORIGINAL name for prefixes to match main line
+                    sb.AppendLine($"_{evt.name}_DisplayName={evt.value ?? evt.name}");
+                    sb.AppendLine($"_{evt.name}_Parameters={evt.paramText ?? ""}");
+                    sb.AppendLine($"_{evt.name}_Defaults=_");  // Use underscore for empty, not blank
+                    sb.AppendLine($"_{evt.name}_Category={evt.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -413,26 +387,6 @@ namespace BetterTriggers
 
                     conditionCount++;
 
-                    // Sanitize function name to avoid special characters breaking War3Net's parser
-                    string sanitizedName = SanitizeFunctionName(cond.name);
-
-                    // Skip if sanitized name is empty (all special chars)
-                    if (string.IsNullOrEmpty(sanitizedName))
-                    {
-                        conditionSkipped++;
-                        ManualLoadDebugLog($"Skipping condition with empty sanitized name: {cond.name}");
-                        continue;
-                    }
-
-                    // Skip if sanitized name is a duplicate
-                    if (addedSanitizedConditions.Contains(sanitizedName))
-                    {
-                        conditionSkipped++;
-                        ManualLoadDebugLog($"Skipping condition with duplicate sanitized name: {cond.name} -> {sanitizedName}");
-                        continue;
-                    }
-                    addedSanitizedConditions.Add(sanitizedName);
-
                     var paramTypes = new List<string>();
                     if (cond.parameters != null)
                     {
@@ -442,14 +396,14 @@ namespace BetterTriggers
                         }
                     }
 
-                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
+                    // Use ORIGINAL name for BOTH main line AND metadata prefixes
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{cond.name}=0{paramTypesStr}");
 
-                    sb.AppendLine($"_{sanitizedName}_DisplayName={cond.value ?? cond.name}");
-                    sb.AppendLine($"_{sanitizedName}_Parameters={cond.paramText ?? ""}");
-                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
-                    sb.AppendLine($"_{sanitizedName}_Category={cond.category ?? "TC_NOTHING"}");
+                    sb.AppendLine($"_{cond.name}_DisplayName={cond.value ?? cond.name}");
+                    sb.AppendLine($"_{cond.name}_Parameters={cond.paramText ?? ""}");
+                    sb.AppendLine($"_{cond.name}_Defaults=_");
+                    sb.AppendLine($"_{cond.name}_Category={cond.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -479,26 +433,6 @@ namespace BetterTriggers
 
                     actionCount++;
 
-                    // Sanitize function name to avoid special characters breaking War3Net's parser
-                    string sanitizedName = SanitizeFunctionName(action.name);
-
-                    // Skip if sanitized name is empty (all special chars)
-                    if (string.IsNullOrEmpty(sanitizedName))
-                    {
-                        actionSkipped++;
-                        ManualLoadDebugLog($"Skipping action with empty sanitized name: {action.name}");
-                        continue;
-                    }
-
-                    // Skip if sanitized name is a duplicate
-                    if (addedSanitizedActions.Contains(sanitizedName))
-                    {
-                        actionSkipped++;
-                        ManualLoadDebugLog($"Skipping action with duplicate sanitized name: {action.name} -> {sanitizedName}");
-                        continue;
-                    }
-                    addedSanitizedActions.Add(sanitizedName);
-
                     var paramTypes = new List<string>();
                     if (action.parameters != null)
                     {
@@ -508,14 +442,14 @@ namespace BetterTriggers
                         }
                     }
 
-                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
+                    // Use ORIGINAL name for BOTH main line AND metadata prefixes
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{action.name}=0{paramTypesStr}");
 
-                    sb.AppendLine($"_{sanitizedName}_DisplayName={action.value ?? action.name}");
-                    sb.AppendLine($"_{sanitizedName}_Parameters={action.paramText ?? ""}");
-                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
-                    sb.AppendLine($"_{sanitizedName}_Category={action.category ?? "TC_NOTHING"}");
+                    sb.AppendLine($"_{action.name}_DisplayName={action.value ?? action.name}");
+                    sb.AppendLine($"_{action.name}_Parameters={action.paramText ?? ""}");
+                    sb.AppendLine($"_{action.name}_Defaults=_");
+                    sb.AppendLine($"_{action.name}_Category={action.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
@@ -545,26 +479,6 @@ namespace BetterTriggers
 
                     callCount++;
 
-                    // Sanitize function name to avoid special characters breaking War3Net's parser
-                    string sanitizedName = SanitizeFunctionName(call.name);
-
-                    // Skip if sanitized name is empty (all special chars)
-                    if (string.IsNullOrEmpty(sanitizedName))
-                    {
-                        callSkipped++;
-                        ManualLoadDebugLog($"Skipping call with empty sanitized name: {call.name}");
-                        continue;
-                    }
-
-                    // Skip if sanitized name is a duplicate
-                    if (addedSanitizedCalls.Contains(sanitizedName))
-                    {
-                        callSkipped++;
-                        ManualLoadDebugLog($"Skipping call with duplicate sanitized name: {call.name} -> {sanitizedName}");
-                        continue;
-                    }
-                    addedSanitizedCalls.Add(sanitizedName);
-
                     var paramTypes = new List<string>();
                     if (call.parameters != null)
                     {
@@ -576,16 +490,16 @@ namespace BetterTriggers
 
                     // TriggerCalls have a different format than Events/Conditions/Actions
                     // Format: FunctionName=version,isAI,returnType,param1,param2,...
-                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
+                    // Use ORIGINAL name for BOTH main line AND metadata prefixes
                     string isAI = "1"; // 1 = true, allow AI to use this function
                     string returnType = call.returnType ?? "nothing";
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
                     sb.AppendLine($"{call.name}=0,{isAI},{returnType}{paramTypesStr}");
 
-                    sb.AppendLine($"_{sanitizedName}_DisplayName={call.value ?? call.name}");
-                    sb.AppendLine($"_{sanitizedName}_Parameters={call.paramText ?? ""}");
-                    sb.AppendLine($"_{sanitizedName}_Defaults=_");
-                    sb.AppendLine($"_{sanitizedName}_Category={call.category ?? "TC_NOTHING"}");
+                    sb.AppendLine($"_{call.name}_DisplayName={call.value ?? call.name}");
+                    sb.AppendLine($"_{call.name}_Parameters={call.paramText ?? ""}");
+                    sb.AppendLine($"_{call.name}_Defaults=_");
+                    sb.AppendLine($"_{call.name}_Category={call.category ?? "TC_NOTHING"}");
                 }
                 catch (Exception ex)
                 {
