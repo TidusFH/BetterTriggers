@@ -250,16 +250,45 @@ namespace BetterTriggers
         private static string SanitizeFunctionName(string functionName)
         {
             // War3Net's parser has issues with certain characters in metadata line prefixes
-            // Replace or remove problematic characters: < > _ (and others)
-            // Use a simple alphanumeric + safe characters approach
+            // Remove all special characters that could break INI parsing
+            // Problematic chars found so far: < > _ . (space) [ ] ( ) / - + = ,
             if (string.IsNullOrEmpty(functionName))
                 return functionName;
 
-            // Replace angle brackets and other problematic chars with safe alternatives
+            // Remove all special characters that can break War3Net's INI parser
             return functionName
                 .Replace("<", "")
                 .Replace(">", "")
-                .Replace("_", "");  // Remove underscores to avoid parsing conflicts
+                .Replace("_", "")
+                .Replace(" ", "")   // Spaces break parsing
+                .Replace(".", "")   // Dots break parsing
+                .Replace("[", "")
+                .Replace("]", "")
+                .Replace("(", "")
+                .Replace(")", "")
+                .Replace("/", "")
+                .Replace("-", "")
+                .Replace("+", "")
+                .Replace("=", "")
+                .Replace(",", "")
+                .Replace("!", "")
+                .Replace("?", "")
+                .Replace("*", "")
+                .Replace("&", "")
+                .Replace("%", "")
+                .Replace("$", "")
+                .Replace("#", "")
+                .Replace("@", "")
+                .Replace(":", "")
+                .Replace(";", "")
+                .Replace("'", "")
+                .Replace("\"", "")
+                .Replace("`", "")
+                .Replace("~", "")
+                .Replace("|", "")
+                .Replace("\\", "")
+                .Replace("{", "")
+                .Replace("}", "");
         }
 
         private static War3Net.Build.Script.TriggerData CreateWar3NetTriggerData()
