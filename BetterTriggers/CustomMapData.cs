@@ -252,6 +252,12 @@ namespace BetterTriggers
             // Export BetterTriggers' TriggerData to War3Net's INI format
             var sb = new StringBuilder();
 
+            // Track function names to avoid duplicates (War3Net doesn't support duplicate keys)
+            var addedEvents = new HashSet<string>();
+            var addedConditions = new HashSet<string>();
+            var addedActions = new HashSet<string>();
+            var addedCalls = new HashSet<string>();
+
             // TriggerCategories section (minimal, not critical for parsing)
             sb.AppendLine("[TriggerCategories]");
             sb.AppendLine();
@@ -271,10 +277,20 @@ namespace BetterTriggers
             // TriggerEvents section
             sb.AppendLine("[TriggerEvents]");
             int eventCount = 0;
+            int eventSkipped = 0;
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
                 try
                 {
+                    // Skip duplicates
+                    if (addedEvents.Contains(evt.name))
+                    {
+                        eventSkipped++;
+                        ManualLoadDebugLog($"Skipping duplicate event: {evt.name}");
+                        continue;
+                    }
+                    addedEvents.Add(evt.name);
+
                     eventCount++;
                     // Build parameter types list
                     var paramTypes = new List<string>();
@@ -303,15 +319,25 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {eventCount} events successfully");
+            ManualLoadDebugLog($"Processed {eventCount} events successfully (skipped {eventSkipped} duplicates)");
 
             // TriggerConditions section
             sb.AppendLine("[TriggerConditions]");
             int conditionCount = 0;
+            int conditionSkipped = 0;
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
                 try
                 {
+                    // Skip duplicates
+                    if (addedConditions.Contains(cond.name))
+                    {
+                        conditionSkipped++;
+                        ManualLoadDebugLog($"Skipping duplicate condition: {cond.name}");
+                        continue;
+                    }
+                    addedConditions.Add(cond.name);
+
                     conditionCount++;
                     var paramTypes = new List<string>();
                     if (cond.parameters != null)
@@ -336,15 +362,25 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {conditionCount} conditions successfully");
+            ManualLoadDebugLog($"Processed {conditionCount} conditions successfully (skipped {conditionSkipped} duplicates)");
 
             // TriggerActions section
             sb.AppendLine("[TriggerActions]");
             int actionCount = 0;
+            int actionSkipped = 0;
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
                 try
                 {
+                    // Skip duplicates
+                    if (addedActions.Contains(action.name))
+                    {
+                        actionSkipped++;
+                        ManualLoadDebugLog($"Skipping duplicate action: {action.name}");
+                        continue;
+                    }
+                    addedActions.Add(action.name);
+
                     actionCount++;
                     var paramTypes = new List<string>();
                     if (action.parameters != null)
@@ -369,15 +405,25 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {actionCount} actions successfully");
+            ManualLoadDebugLog($"Processed {actionCount} actions successfully (skipped {actionSkipped} duplicates)");
 
             // TriggerCalls section
             sb.AppendLine("[TriggerCalls]");
             int callCount = 0;
+            int callSkipped = 0;
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
                 try
                 {
+                    // Skip duplicates
+                    if (addedCalls.Contains(call.name))
+                    {
+                        callSkipped++;
+                        ManualLoadDebugLog($"Skipping duplicate call: {call.name}");
+                        continue;
+                    }
+                    addedCalls.Add(call.name);
+
                     callCount++;
                     var paramTypes = new List<string>();
                     if (call.parameters != null)
@@ -402,7 +448,7 @@ namespace BetterTriggers
                 }
             }
             sb.AppendLine();
-            ManualLoadDebugLog($"Processed {callCount} calls successfully");
+            ManualLoadDebugLog($"Processed {callCount} calls successfully (skipped {callSkipped} duplicates)");
 
             // DefaultTriggerCategories and DefaultTriggers (skip, not needed for parsing)
             sb.AppendLine("[DefaultTriggerCategories]");
