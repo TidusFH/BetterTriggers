@@ -374,11 +374,12 @@ namespace BetterTriggers
                     }
 
                     // Main line format: FunctionName=version,paramType1,paramType2,...
-                    // Use sanitized name for both main line AND metadata to ensure they match
+                    // Use ORIGINAL name for main line (War3Net looks up functions by original name)
+                    // Use SANITIZED name for metadata prefixes (to avoid INI parsing errors)
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                    sb.AppendLine($"{sanitizedName}=0{paramTypesStr}");
+                    sb.AppendLine($"{evt.name}=0{paramTypesStr}");
 
-                    // Required metadata lines - ALL must be present
+                    // Required metadata lines - use sanitized name for prefixes only
                     sb.AppendLine($"_{sanitizedName}_DisplayName={evt.value ?? evt.name}");
                     sb.AppendLine($"_{sanitizedName}_Parameters={evt.paramText ?? ""}");
                     sb.AppendLine($"_{sanitizedName}_Defaults=_");  // Use underscore for empty, not blank
@@ -441,9 +442,9 @@ namespace BetterTriggers
                         }
                     }
 
-                    // Use sanitized name for both main line AND metadata to ensure they match
+                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                    sb.AppendLine($"{sanitizedName}=0{paramTypesStr}");
+                    sb.AppendLine($"{cond.name}=0{paramTypesStr}");
 
                     sb.AppendLine($"_{sanitizedName}_DisplayName={cond.value ?? cond.name}");
                     sb.AppendLine($"_{sanitizedName}_Parameters={cond.paramText ?? ""}");
@@ -507,9 +508,9 @@ namespace BetterTriggers
                         }
                     }
 
-                    // Use sanitized name for both main line AND metadata to ensure they match
+                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                    sb.AppendLine($"{sanitizedName}=0{paramTypesStr}");
+                    sb.AppendLine($"{action.name}=0{paramTypesStr}");
 
                     sb.AppendLine($"_{sanitizedName}_DisplayName={action.value ?? action.name}");
                     sb.AppendLine($"_{sanitizedName}_Parameters={action.paramText ?? ""}");
@@ -573,9 +574,9 @@ namespace BetterTriggers
                         }
                     }
 
-                    // Use sanitized name for both main line AND metadata to ensure they match
+                    // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                    sb.AppendLine($"{sanitizedName}=0{paramTypesStr}");
+                    sb.AppendLine($"{call.name}=0{paramTypesStr}");
 
                     sb.AppendLine($"_{sanitizedName}_DisplayName={call.value ?? call.name}");
                     sb.AppendLine($"_{sanitizedName}_Parameters={call.paramText ?? ""}");
