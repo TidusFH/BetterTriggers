@@ -270,99 +270,139 @@ namespace BetterTriggers
 
             // TriggerEvents section
             sb.AppendLine("[TriggerEvents]");
+            int eventCount = 0;
             foreach (var evt in WorldEdit.TriggerData.EventTemplates.Values)
             {
-                // Build parameter types list
-                var paramTypes = new List<string>();
-                if (evt.parameters != null)
+                try
                 {
-                    foreach (var param in evt.parameters)
+                    eventCount++;
+                    // Build parameter types list
+                    var paramTypes = new List<string>();
+                    if (evt.parameters != null)
                     {
-                        paramTypes.Add(param.returnType ?? "nothing");
+                        foreach (var param in evt.parameters)
+                        {
+                            paramTypes.Add(param.returnType ?? "nothing");
+                        }
                     }
+
+                    // Main line format: FunctionName=version,paramType1,paramType2,...
+                    string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                    sb.AppendLine($"{evt.name}=0{paramTypesStr}");
+
+                    // Required metadata lines - ALL must be present
+                    sb.AppendLine($"_{evt.name}_DisplayName={evt.value ?? evt.name}");
+                    sb.AppendLine($"_{evt.name}_Parameters={evt.paramText ?? ""}");
+                    sb.AppendLine($"_{evt.name}_Defaults=_");  // Use underscore for empty, not blank
+                    sb.AppendLine($"_{evt.name}_Category={evt.category ?? "TC_NOTHING"}");
                 }
-
-                // Main line format: FunctionName=version,paramType1,paramType2,...
-                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                sb.AppendLine($"{evt.name}=0{paramTypesStr}");
-
-                // Required metadata lines
-                sb.AppendLine($"_{evt.name}_DisplayName={evt.value ?? evt.name}");
-                sb.AppendLine($"_{evt.name}_Parameters={evt.paramText ?? ""}");
-                sb.AppendLine($"_{evt.name}_Defaults=");
-                sb.AppendLine($"_{evt.name}_Category={evt.category ?? "TC_NOTHING"}");
-                sb.AppendLine();
+                catch (Exception ex)
+                {
+                    ManualLoadDebugLog($"ERROR processing Event #{eventCount}: {evt?.name ?? "NULL"} - {ex.Message}");
+                    throw;
+                }
             }
             sb.AppendLine();
+            ManualLoadDebugLog($"Processed {eventCount} events successfully");
 
             // TriggerConditions section
             sb.AppendLine("[TriggerConditions]");
+            int conditionCount = 0;
             foreach (var cond in WorldEdit.TriggerData.ConditionTemplates.Values)
             {
-                var paramTypes = new List<string>();
-                if (cond.parameters != null)
+                try
                 {
-                    foreach (var param in cond.parameters)
+                    conditionCount++;
+                    var paramTypes = new List<string>();
+                    if (cond.parameters != null)
                     {
-                        paramTypes.Add(param.returnType ?? "nothing");
+                        foreach (var param in cond.parameters)
+                        {
+                            paramTypes.Add(param.returnType ?? "nothing");
+                        }
                     }
-                }
 
-                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                sb.AppendLine($"{cond.name}=0{paramTypesStr}");
-                sb.AppendLine($"_{cond.name}_DisplayName={cond.value ?? cond.name}");
-                sb.AppendLine($"_{cond.name}_Parameters={cond.paramText ?? ""}");
-                sb.AppendLine($"_{cond.name}_Defaults=");
-                sb.AppendLine($"_{cond.name}_Category={cond.category ?? "TC_NOTHING"}");
-                sb.AppendLine();
+                    string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                    sb.AppendLine($"{cond.name}=0{paramTypesStr}");
+                    sb.AppendLine($"_{cond.name}_DisplayName={cond.value ?? cond.name}");
+                    sb.AppendLine($"_{cond.name}_Parameters={cond.paramText ?? ""}");
+                    sb.AppendLine($"_{cond.name}_Defaults=_");
+                    sb.AppendLine($"_{cond.name}_Category={cond.category ?? "TC_NOTHING"}");
+                }
+                catch (Exception ex)
+                {
+                    ManualLoadDebugLog($"ERROR processing Condition #{conditionCount}: {cond?.name ?? "NULL"} - {ex.Message}");
+                    throw;
+                }
             }
             sb.AppendLine();
+            ManualLoadDebugLog($"Processed {conditionCount} conditions successfully");
 
             // TriggerActions section
             sb.AppendLine("[TriggerActions]");
+            int actionCount = 0;
             foreach (var action in WorldEdit.TriggerData.ActionTemplates.Values)
             {
-                var paramTypes = new List<string>();
-                if (action.parameters != null)
+                try
                 {
-                    foreach (var param in action.parameters)
+                    actionCount++;
+                    var paramTypes = new List<string>();
+                    if (action.parameters != null)
                     {
-                        paramTypes.Add(param.returnType ?? "nothing");
+                        foreach (var param in action.parameters)
+                        {
+                            paramTypes.Add(param.returnType ?? "nothing");
+                        }
                     }
-                }
 
-                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                sb.AppendLine($"{action.name}=0{paramTypesStr}");
-                sb.AppendLine($"_{action.name}_DisplayName={action.value ?? action.name}");
-                sb.AppendLine($"_{action.name}_Parameters={action.paramText ?? ""}");
-                sb.AppendLine($"_{action.name}_Defaults=");
-                sb.AppendLine($"_{action.name}_Category={action.category ?? "TC_NOTHING"}");
-                sb.AppendLine();
+                    string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                    sb.AppendLine($"{action.name}=0{paramTypesStr}");
+                    sb.AppendLine($"_{action.name}_DisplayName={action.value ?? action.name}");
+                    sb.AppendLine($"_{action.name}_Parameters={action.paramText ?? ""}");
+                    sb.AppendLine($"_{action.name}_Defaults=_");
+                    sb.AppendLine($"_{action.name}_Category={action.category ?? "TC_NOTHING"}");
+                }
+                catch (Exception ex)
+                {
+                    ManualLoadDebugLog($"ERROR processing Action #{actionCount}: {action?.name ?? "NULL"} - {ex.Message}");
+                    throw;
+                }
             }
             sb.AppendLine();
+            ManualLoadDebugLog($"Processed {actionCount} actions successfully");
 
             // TriggerCalls section
             sb.AppendLine("[TriggerCalls]");
+            int callCount = 0;
             foreach (var call in WorldEdit.TriggerData.CallTemplates.Values)
             {
-                var paramTypes = new List<string>();
-                if (call.parameters != null)
+                try
                 {
-                    foreach (var param in call.parameters)
+                    callCount++;
+                    var paramTypes = new List<string>();
+                    if (call.parameters != null)
                     {
-                        paramTypes.Add(param.returnType ?? "nothing");
+                        foreach (var param in call.parameters)
+                        {
+                            paramTypes.Add(param.returnType ?? "nothing");
+                        }
                     }
-                }
 
-                string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                sb.AppendLine($"{call.name}=0{paramTypesStr}");
-                sb.AppendLine($"_{call.name}_DisplayName={call.value ?? call.name}");
-                sb.AppendLine($"_{call.name}_Parameters={call.paramText ?? ""}");
-                sb.AppendLine($"_{call.name}_Defaults=");
-                sb.AppendLine($"_{call.name}_Category={call.category ?? "TC_NOTHING"}");
-                sb.AppendLine();
+                    string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
+                    sb.AppendLine($"{call.name}=0{paramTypesStr}");
+                    sb.AppendLine($"_{call.name}_DisplayName={call.value ?? call.name}");
+                    sb.AppendLine($"_{call.name}_Parameters={call.paramText ?? ""}");
+                    sb.AppendLine($"_{call.name}_Defaults=_");
+                    sb.AppendLine($"_{call.name}_Category={call.category ?? "TC_NOTHING"}");
+                }
+                catch (Exception ex)
+                {
+                    ManualLoadDebugLog($"ERROR processing Call #{callCount}: {call?.name ?? "NULL"} - {ex.Message}");
+                    throw;
+                }
             }
             sb.AppendLine();
+            ManualLoadDebugLog($"Processed {callCount} calls successfully");
 
             // DefaultTriggerCategories and DefaultTriggers (skip, not needed for parsing)
             sb.AppendLine("[DefaultTriggerCategories]");
@@ -385,20 +425,40 @@ namespace BetterTriggers
             }
 
             // Create War3Net TriggerData using reflection (constructor is internal)
-            using var stringReader = new StringReader(generatedData);
-            var triggerDataType = typeof(War3Net.Build.Script.TriggerData);
-            var constructor = triggerDataType.GetConstructor(
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
-                null,
-                new[] { typeof(StringReader) },
-                null);
-
-            if (constructor == null)
+            ManualLoadDebugLog($"About to create War3Net TriggerData from generated string...");
+            try
             {
-                throw new Exception("Could not find TriggerData constructor via reflection");
-            }
+                using var stringReader = new StringReader(generatedData);
+                var triggerDataType = typeof(War3Net.Build.Script.TriggerData);
+                var constructor = triggerDataType.GetConstructor(
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                    null,
+                    new[] { typeof(StringReader) },
+                    null);
 
-            return (War3Net.Build.Script.TriggerData)constructor.Invoke(new object[] { stringReader });
+                if (constructor == null)
+                {
+                    throw new Exception("Could not find TriggerData constructor via reflection");
+                }
+
+                ManualLoadDebugLog($"Invoking TriggerData constructor...");
+                var result = (War3Net.Build.Script.TriggerData)constructor.Invoke(new object[] { stringReader });
+                ManualLoadDebugLog($"TriggerData created successfully!");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                ManualLoadDebugLog($"ERROR creating TriggerData: {ex.GetType().Name}");
+                ManualLoadDebugLog($"ERROR Message: {ex.Message}");
+
+                if (ex.InnerException != null)
+                {
+                    ManualLoadDebugLog($"INNER Exception: {ex.InnerException.GetType().Name}");
+                    ManualLoadDebugLog($"INNER Message: {ex.InnerException.Message}");
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
