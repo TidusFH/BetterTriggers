@@ -574,9 +574,13 @@ namespace BetterTriggers
                         }
                     }
 
+                    // TriggerCalls have a different format than Events/Conditions/Actions
+                    // Format: FunctionName=version,isAI,returnType,param1,param2,...
                     // Use ORIGINAL name for main line, SANITIZED name for metadata prefixes
+                    string isAI = "1"; // 1 = true, allow AI to use this function
+                    string returnType = call.returnType ?? "nothing";
                     string paramTypesStr = paramTypes.Count > 0 ? "," + string.Join(",", paramTypes) : "";
-                    sb.AppendLine($"{call.name}=0{paramTypesStr}");
+                    sb.AppendLine($"{call.name}=0,{isAI},{returnType}{paramTypesStr}");
 
                     sb.AppendLine($"_{sanitizedName}_DisplayName={call.value ?? call.name}");
                     sb.AppendLine($"_{sanitizedName}_Parameters={call.paramText ?? ""}");
